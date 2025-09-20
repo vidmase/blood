@@ -1,0 +1,7 @@
+{
+  "name": "AI Blood Pressure Tracker",
+  "description": "An intelligent blood pressure tracker that uses AI to analyze images of your readings, record your data, and provide insights into your health trends.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

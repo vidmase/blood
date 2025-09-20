@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Blood Pressure Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        --c-bg: #f8f9fe;
+        --c-surface: #ffffff;
+        --c-primary: #6366f1;
+        --c-primary-light: #e0e7ff;
+        --c-primary-dark: #4f46e5;
+        --c-secondary: #a855f7;
+        --c-text-primary: #1f2937;
+        --c-text-secondary: #4b5563;
+        --c-text-tertiary: #9ca3af;
+        --c-border: #e5e7eb;
+        --c-success: #10b981;
+        --c-warning: #f59e0b;
+        --c-danger: #ef4444;
+        --c-info: #3b82f6;
+      }
+
+      [data-theme="dark"] {
+        --c-bg: #111827;
+        --c-surface: #1f2937;
+        --c-primary: #818cf8;
+        --c-primary-light: #312e81;
+        --c-primary-dark: #a5b4fc;
+        --c-secondary: #c084fc;
+        --c-text-primary: #f9fafb;
+        --c-text-secondary: #d1d5db;
+        --c-text-tertiary: #6b7280;
+        --c-border: #374151;
+        --c-success: #34d399;
+        --c-warning: #fbbf24;
+        --c-danger: #f87171;
+        --c-info: #60a5fa;
+      }
+
+      @keyframes pulse-heart {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.15); }
+      }
+      .animate-pulse-heart {
+        animation: pulse-heart 2.5s ease-in-out infinite;
+      }
+      
+      @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+      }
+      .animate-fadeInUp {
+        animation: fadeInUp 0.6s ease-out forwards;
+      }
+
+      @keyframes background-pan {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
+      @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+        50% { box-shadow: 0 0 12px 3px rgba(239, 68, 68, 0.1); }
+      }
+      .animate-pulse-glow-red {
+        animation: pulse-glow 2s infinite;
+      }
+      
+      .stagger-children > * {
+        --stagger-delay: 100ms;
+        animation-delay: calc(var(--stagger-index, 0) * var(--stagger-delay));
+      }
+
+      body {
+        background-color: var(--c-bg);
+        color: var(--c-text-primary);
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.19.0",
+    "recharts": "https://aistudiocdn.com/recharts@^3.2.1",
+    "jspdf": "https://aistudiocdn.com/jspdf@^2.5.1",
+    "jspdf-autotable": "https://aistudiocdn.com/jspdf-autotable@^3.8.2"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-[var(--c-bg)]">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
