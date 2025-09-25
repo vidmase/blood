@@ -1,10 +1,11 @@
 
 export interface BloodPressureReading {
-  id: number;
+  id: number | string; // Support both number (legacy) and string (UUID from database)
   date: string;
   systolic: number;
   diastolic: number;
   pulse: number;
+  notes?: string;
 }
 
 export interface TrendComparison {

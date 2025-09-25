@@ -31,7 +31,7 @@ const Gauge: React.FC<GaugeProps> = ({
   unit, 
   color, 
   zones, 
-  size = 200,
+  size = 180, // Smaller default size for mobile
   target
 }) => {
   const [animatedValue, setAnimatedValue] = useState(min);
@@ -78,8 +78,13 @@ const Gauge: React.FC<GaugeProps> = ({
   const pointerBase2 = polarToCartesian(centerX, centerY, 8, pointerAngle + 90);
   
   return (
-    <div className="flex flex-col items-center">
-      <svg width={size} height={size} className="drop-shadow-lg">
+    <div className="flex flex-col items-center w-full">
+      <svg 
+        width={size} 
+        height={size} 
+        className="drop-shadow-lg max-w-full h-auto"
+        viewBox={`0 0 ${size} ${size}`}
+      >
         {/* Background circle */}
         <circle
           cx={centerX}
@@ -116,12 +121,12 @@ const Gauge: React.FC<GaugeProps> = ({
           }}
         />
         
-        {/* Tick marks */}
-        {Array.from({ length: 11 }, (_, i) => {
-          const tickRatio = i / 10;
+        {/* Simplified tick marks - fewer ticks for mobile */}
+        {Array.from({ length: 6 }, (_, i) => {
+          const tickRatio = i / 5;
           const tickAngle = startAngle + (tickRatio * totalAngle);
-          const tickStart = polarToCartesian(centerX, centerY, radius + 5, tickAngle);
-          const tickEnd = polarToCartesian(centerX, centerY, radius + 15, tickAngle);
+          const tickStart = polarToCartesian(centerX, centerY, radius + 3, tickAngle);
+          const tickEnd = polarToCartesian(centerX, centerY, radius + 12, tickAngle);
           const tickValue = min + (tickRatio * (max - min));
           
           return (
@@ -135,8 +140,8 @@ const Gauge: React.FC<GaugeProps> = ({
                 strokeWidth="2"
               />
               <text
-                x={polarToCartesian(centerX, centerY, radius + 25, tickAngle).x}
-                y={polarToCartesian(centerX, centerY, radius + 25, tickAngle).y}
+                x={polarToCartesian(centerX, centerY, radius + 20, tickAngle).x}
+                y={polarToCartesian(centerX, centerY, radius + 20, tickAngle).y}
                 textAnchor="middle"
                 dominantBaseline="middle"
                 className="text-xs font-medium fill-slate-600"
@@ -217,42 +222,42 @@ const Gauge: React.FC<GaugeProps> = ({
           strokeWidth="3"
         />
         
-        {/* Value display */}
+        {/* Value display - more compact for mobile */}
         <text
           x={centerX}
-          y={centerY + 40}
+          y={centerY + 35}
           textAnchor="middle"
-          className="text-2xl font-bold fill-slate-800"
+          className="text-xl sm:text-2xl font-bold fill-slate-800"
         >
           {Math.round(animatedValue)}
         </text>
         <text
           x={centerX}
-          y={centerY + 58}
+          y={centerY + 50}
           textAnchor="middle"
-          className="text-sm font-medium fill-slate-500"
+          className="text-xs sm:text-sm font-medium fill-slate-500"
         >
           {unit}
         </text>
       </svg>
       
-      {/* Title */}
-      <h4 className="text-lg font-semibold text-slate-800 mt-2">{title}</h4>
+      {/* Title - more compact for mobile */}
+      <h4 className="text-sm sm:text-lg font-semibold text-slate-800 mt-1 text-center px-2">{title}</h4>
       
-      {/* Status indicator */}
-      <div className="mt-3">
+      {/* Status indicator - more compact */}
+      <div className="mt-2">
         {(() => {
           const currentZone = zones.find(zone => value >= zone.min && value <= zone.max);
           if (!currentZone) return null;
           
           return (
-            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${
+            <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs sm:text-sm font-medium ${
               currentZone.color === '#10b981' ? 'bg-green-100 text-green-700' :
               currentZone.color === '#f59e0b' ? 'bg-amber-100 text-amber-700' :
               'bg-red-100 text-red-700'
             }`}>
               <div 
-                className="w-2 h-2 rounded-full" 
+                className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full" 
                 style={{ backgroundColor: currentZone.color }}
               ></div>
               <span>{currentZone.label}</span>
@@ -305,29 +310,29 @@ export const BloodPressureGauge: React.FC<BloodPressureGaugeProps> = ({ readings
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-slate-200/60 overflow-hidden">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-slate-200/60 px-6 py-5">
-        <div className="flex items-center justify-between">
+      {/* Header - mobile optimized */}
+      <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-slate-200/60 px-4 sm:px-6 py-4 sm:py-5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </div>
             <div>
-              <h3 className="text-xl font-bold text-slate-800">Blood Pressure Gauges</h3>
-              <p className="text-sm text-slate-600">Medical-style gauge visualization</p>
+              <h3 className="text-lg sm:text-xl font-bold text-slate-800">Blood Pressure Gauges</h3>
+              <p className="text-xs sm:text-sm text-slate-600">Medical-style gauge visualization</p>
             </div>
           </div>
           
-          {/* Reading selector */}
+          {/* Reading selector - mobile friendly */}
           {readings.length > 1 && (
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-slate-600">Reading:</label>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <label className="text-xs sm:text-sm font-medium text-slate-600 whitespace-nowrap">Reading:</label>
               <select
                 value={selectedReading}
                 onChange={(e) => setSelectedReading(Number(e.target.value))}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-medium bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="flex-1 sm:flex-initial px-2 sm:px-3 py-1.5 rounded-lg border border-slate-200 text-xs sm:text-sm font-medium bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 {readings.map((reading, index) => (
                   <option key={reading.id} value={index}>
@@ -340,18 +345,18 @@ export const BloodPressureGauge: React.FC<BloodPressureGaugeProps> = ({ readings
         </div>
       </div>
 
-      {/* Reading info */}
-      <div className="px-6 py-4 bg-slate-50/50 border-b border-slate-200/60">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-lg font-semibold text-slate-800">
+      {/* Reading info - mobile optimized */}
+      <div className="px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 border-b border-slate-200/60">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="text-center sm:text-left">
+            <div className="text-base sm:text-lg font-semibold text-slate-800">
               {new Date(currentReading.date).toLocaleDateString(undefined, {
                 year: 'numeric',
-                month: 'long',
+                month: 'short',
                 day: 'numeric'
               })}
             </div>
-            <div className="text-sm text-slate-600">
+            <div className="text-xs sm:text-sm text-slate-600">
               {new Date(currentReading.date).toLocaleTimeString([], { 
                 hour: '2-digit', 
                 minute: '2-digit',
@@ -359,25 +364,25 @@ export const BloodPressureGauge: React.FC<BloodPressureGaugeProps> = ({ readings
               })}
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center gap-3 sm:gap-4">
             <button
               onClick={() => setSelectedReading(Math.max(0, selectedReading - 1))}
               disabled={selectedReading === 0}
-              className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="p-1.5 sm:p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <span className="text-sm font-medium text-slate-600">
+            <span className="text-xs sm:text-sm font-medium text-slate-600 whitespace-nowrap">
               {selectedReading + 1} of {readings.length}
             </span>
             <button
               onClick={() => setSelectedReading(Math.min(readings.length - 1, selectedReading + 1))}
               disabled={selectedReading === readings.length - 1}
-              className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="p-1.5 sm:p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
@@ -385,9 +390,9 @@ export const BloodPressureGauge: React.FC<BloodPressureGaugeProps> = ({ readings
         </div>
       </div>
 
-      {/* Gauges */}
-      <div className="p-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 justify-items-center">
+      {/* Gauges - mobile optimized layout */}
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 justify-items-center">
           {/* Systolic Gauge */}
           <Gauge
             value={currentReading.systolic}
@@ -397,7 +402,7 @@ export const BloodPressureGauge: React.FC<BloodPressureGaugeProps> = ({ readings
             unit="mmHg"
             color="#64748b"
             zones={systolicZones}
-            size={240}
+            size={160} // Smaller for mobile
             target={targets.systolic}
           />
           
@@ -410,33 +415,35 @@ export const BloodPressureGauge: React.FC<BloodPressureGaugeProps> = ({ readings
             unit="mmHg"
             color="#64748b"
             zones={diastolicZones}
-            size={240}
+            size={160} // Smaller for mobile
             target={targets.diastolic}
           />
           
           {/* Pulse Gauge */}
-          <Gauge
-            value={currentReading.pulse}
-            min={40}
-            max={200}
-            title="Heart Rate"
-            unit="BPM"
-            color="#64748b"
-            zones={pulseZones}
-            size={240}
-          />
+          <div className="sm:col-span-2 lg:col-span-1">
+            <Gauge
+              value={currentReading.pulse}
+              min={40}
+              max={200}
+              title="Heart Rate"
+              unit="BPM"
+              color="#64748b"
+              zones={pulseZones}
+              size={160} // Smaller for mobile
+            />
+          </div>
         </div>
       </div>
 
-      {/* Combined Reading Display */}
-      <div className="px-6 py-4 bg-gradient-to-r from-slate-50 to-indigo-50/30 border-t border-slate-200/60">
+      {/* Combined Reading Display - mobile optimized */}
+      <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-slate-50 to-indigo-50/30 border-t border-slate-200/60">
         <div className="text-center">
-          <div className="text-3xl font-bold text-slate-800 mb-2">
+          <div className="text-2xl sm:text-3xl font-bold text-slate-800 mb-1 sm:mb-2">
             {currentReading.systolic}/{currentReading.diastolic}
-            <span className="text-lg font-medium text-slate-600 ml-2">mmHg</span>
+            <span className="text-sm sm:text-lg font-medium text-slate-600 ml-1 sm:ml-2">mmHg</span>
           </div>
-          <div className="text-lg font-semibold text-pink-600">
-            {currentReading.pulse} <span className="text-sm font-medium">BPM</span>
+          <div className="text-base sm:text-lg font-semibold text-pink-600">
+            {currentReading.pulse} <span className="text-xs sm:text-sm font-medium">BPM</span>
           </div>
         </div>
       </div>

@@ -83,13 +83,12 @@ export const AnalysisChart: React.FC<AnalysisChartProps> = ({ data, totalReading
                         boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)'
                     }}
                 />
-                <Legend />
                 <Area type="monotone" dataKey="systolic" stroke="0" fill="url(#colorSystolic)" />
                 <Area type="monotone" dataKey="diastolic" stroke="0" fill="url(#colorDiastolic)" />
                 <Area type="monotone" dataKey="pulse" stroke="0" fill="url(#colorPulse)" />
-                <Line type="monotone" dataKey="systolic" stroke="#ef4444" strokeWidth={2} activeDot={{ r: 8 }} name={t('analysis.systolic')} dot={{ r: 4 }} />
-                <Line type="monotone" dataKey="diastolic" stroke="#6366f1" strokeWidth={2} activeDot={{ r: 8 }} name={t('analysis.diastolic')} dot={{ r: 4 }}/>
-                <Line type="monotone" dataKey="pulse" stroke="#10b981" strokeWidth={2} activeDot={{ r: 8 }} name={t('analysis.pulse')} dot={{ r: 4 }}/>
+                <Line type="monotone" dataKey="systolic" stroke="#ef4444" strokeWidth={2} activeDot={{ r: 8 }} name="Systolic" dot={{ r: 4 }} />
+                <Line type="monotone" dataKey="diastolic" stroke="#6366f1" strokeWidth={2} activeDot={{ r: 8 }} name="Diastolic" dot={{ r: 4 }}/>
+                <Line type="monotone" dataKey="pulse" stroke="#10b981" strokeWidth={2} activeDot={{ r: 8 }} name="Pulse" dot={{ r: 4 }}/>
                 </LineChart>
             </ResponsiveContainer>
         )}

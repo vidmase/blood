@@ -6,6 +6,10 @@ import { FileUpload } from './components/FileUpload';
 import { ReadingsTable } from './components/ReadingsTable';
 import { ReadingsCalendar } from './components/ReadingsCalendar';
 import { CalendarReadingModal } from './components/CalendarReadingModal';
+import { EditReadingModal } from './components/EditReadingModal';
+import { DeleteConfirmModal } from './components/DeleteConfirmModal';
+import { PinVerificationModal } from './components/PinVerificationModal';
+import { AddReadingModal } from './components/AddReadingModal';
 import { AnalysisChart } from './components/AnalysisChart';
 import { AnalysisSummary } from './components/AnalysisSummary';
 import { DateFilter } from './components/DateFilter';
@@ -71,6 +75,13 @@ const MainApp: React.FC = () => {
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(null);
   const [selectedDateReadings, setSelectedDateReadings] = useState<BloodPressureReading[]>([]);
   const [currentView, setCurrentView] = useState<'table' | 'calendar'>('table');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedReading, setSelectedReading] = useState<BloodPressureReading | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'edit' | 'delete' | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   
   const [profile, setProfile] = useState<UserProfile>(() => {
     try {
@@ -215,6 +226,9 @@ const MainApp: React.FC = () => {
           
           const savedReadings = await bloodPressureService.createReadings(readingsData);
           setReadings(prevReadings => [...prevReadings, ...savedReadings].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+          
+          // Automatically switch to table view to show the new records
+          setCurrentView('table');
         } catch (dbError) {
           console.error('Error saving to database:', dbError);
           setError('Failed to save readings to database. Please try again.');
@@ -466,6 +480,117 @@ const MainApp: React.FC = () => {
     setIsCalendarModalOpen(true);
   };
 
+  const handleEditReading = (reading: BloodPressureReading) => {
+    setSelectedReading(reading);
+    setPendingAction('edit');
+    setIsPinModalOpen(true);
+  };
+
+  const handleDeleteReading = (reading: BloodPressureReading) => {
+    setSelectedReading(reading);
+    setPendingAction('delete');
+    setIsPinModalOpen(true);
+  };
+
+  const handlePinSuccess = () => {
+    setIsPinModalOpen(false); // Close the PIN modal first
+    
+    if (pendingAction === 'edit') {
+      setIsEditModalOpen(true);
+    } else if (pendingAction === 'delete') {
+      setIsDeleteModalOpen(true);
+    }
+    setPendingAction(null);
+  };
+
+  const handlePinClose = () => {
+    setIsPinModalOpen(false);
+    setPendingAction(null);
+    setSelectedReading(null);
+  };
+
+  const handleSaveReading = async (updatedData: Partial<BloodPressureReading>) => {
+    if (!selectedReading) return;
+
+    setIsUpdating(true);
+    try {
+      const updatedReading = await bloodPressureService.updateReading(
+        selectedReading.id.toString(),
+        {
+          systolic: updatedData.systolic,
+          diastolic: updatedData.diastolic,
+          pulse: updatedData.pulse,
+          reading_date: updatedData.date,
+          notes: updatedData.notes,
+        }
+      );
+
+      // Update the readings list
+      setReadings(prevReadings => 
+        prevReadings.map(reading => 
+          reading.id === selectedReading.id ? updatedReading : reading
+        ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      );
+
+      setIsEditModalOpen(false);
+      setSelectedReading(null);
+    } catch (err) {
+      console.error('Error updating reading:', err);
+      setError('Failed to update reading. Please try again.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedReading) return;
+
+    setIsUpdating(true);
+    try {
+      await bloodPressureService.deleteReading(selectedReading.id.toString());
+
+      // Remove the reading from the list
+      setReadings(prevReadings => 
+        prevReadings.filter(reading => reading.id !== selectedReading.id)
+      );
+
+      setIsDeleteModalOpen(false);
+      setSelectedReading(null);
+    } catch (err) {
+      console.error('Error deleting reading:', err);
+      setError('Failed to delete reading. Please try again.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleAddReading = async (newReadingData: Omit<BloodPressureReading, 'id'>) => {
+    setIsUpdating(true);
+    try {
+      const newReading = await bloodPressureService.createReading({
+        systolic: newReadingData.systolic,
+        diastolic: newReadingData.diastolic,
+        pulse: newReadingData.pulse,
+        reading_date: newReadingData.date,
+        notes: newReadingData.notes,
+      });
+
+      // Add the new reading to the list
+      setReadings(prevReadings => 
+        [newReading, ...prevReadings].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      );
+
+      setIsAddModalOpen(false);
+      // Automatically switch to table view to show the new record
+      setCurrentView('table');
+    } catch (err) {
+      console.error('Error adding reading:', err);
+      setError('Failed to add reading. Please try again.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col font-sans text-[var(--c-text-primary)]">
       <Header 
@@ -488,47 +613,51 @@ const MainApp: React.FC = () => {
           <div className="lg:col-span-2 flex flex-col gap-8 stagger-children" style={{'--stagger-index': 2} as React.CSSProperties}>
             
             <div className="bg-[var(--c-surface)] p-6 rounded-2xl shadow-lg shadow-indigo-100/50 animate-fadeInUp">
-              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4">
+              <div className="flex flex-col gap-4 mb-4">
                 <h2 className="text-2xl font-bold text-[var(--c-text-primary)]">{t('readings.title')}</h2>
-                <div className="flex items-center gap-2">
+                
+                {/* Mobile-first button layout */}
+                <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
                   {/* View Toggle */}
-                  <div className="flex bg-slate-100 rounded-lg p-1">
+                  <div className="flex bg-slate-100 rounded-lg p-1 flex-shrink-0">
                     <button
                       onClick={() => setCurrentView('table')}
-                      className={`px-3 py-1 rounded-md text-sm font-medium transition-all duration-200 ${
+                      className={`px-2 sm:px-3 py-1 rounded-md text-sm font-medium transition-all duration-200 ${
                         currentView === 'table' 
                           ? 'bg-white text-slate-900 shadow-sm' 
                           : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline sm:mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 6h18m-9 8h9" />
                       </svg>
-                      Table
+                      <span className="hidden sm:inline">Table</span>
                     </button>
                     <button
                       onClick={() => setCurrentView('calendar')}
-                      className={`px-3 py-1 rounded-md text-sm font-medium transition-all duration-200 ${
+                      className={`px-2 sm:px-3 py-1 rounded-md text-sm font-medium transition-all duration-200 ${
                         currentView === 'calendar' 
                           ? 'bg-white text-slate-900 shadow-sm' 
                           : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline sm:mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                      Calendar
+                      <span className="hidden sm:inline">Calendar</span>
                     </button>
                   </div>
+                  
+                  {/* Export button only - Add functionality moved to floating button */}
                   <button
                     onClick={() => setIsExportModalOpen(true)}
                     disabled={filteredReadings.length === 0}
-                    className="flex items-center justify-center gap-2 bg-[var(--c-surface)] text-[var(--c-text-secondary)] font-bold py-2 px-4 rounded-lg border border-[var(--c-border)] hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center justify-center gap-1 sm:gap-2 bg-[var(--c-surface)] text-[var(--c-text-secondary)] font-bold py-2 px-3 sm:px-4 rounded-lg border border-[var(--c-border)] hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    {t('export.button')}
+                    <span className="text-sm sm:text-base">Export PDF</span>
                   </button>
                 </div>
               </div>
@@ -537,7 +666,12 @@ const MainApp: React.FC = () => {
                 <>
                   <DateFilter onFilterChange={handleFilterChange} startDate={startDate} endDate={endDate} />
                   <div className="mt-4">
-                    <ReadingsTable readings={filteredReadings} totalReadings={readings.length} />
+                    <ReadingsTable 
+                      readings={filteredReadings} 
+                      totalReadings={readings.length}
+                      onEditReading={handleEditReading}
+                      onDeleteReading={handleDeleteReading}
+                    />
                   </div>
                 </>
               )}
@@ -570,6 +704,7 @@ const MainApp: React.FC = () => {
         onImageUpload={handleImageUpload}
         isLoading={isLoading}
         onOpenCamera={() => setIsCameraOpen(true)}
+        onAddManual={() => setIsAddModalOpen(true)}
       />
       
       <ErrorDisplay message={error} onClose={() => setError(null)} />
@@ -665,6 +800,47 @@ const MainApp: React.FC = () => {
         onClose={() => setIsCalendarModalOpen(false)}
         date={selectedCalendarDate}
         readings={selectedDateReadings}
+      />
+
+      {/* Edit Reading Modal */}
+      <EditReadingModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedReading(null);
+        }}
+        reading={selectedReading}
+        onSave={handleSaveReading}
+        isLoading={isUpdating}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setSelectedReading(null);
+        }}
+        reading={selectedReading}
+        onConfirm={handleConfirmDelete}
+        isLoading={isUpdating}
+      />
+
+      {/* PIN Verification Modal */}
+      <PinVerificationModal
+        isOpen={isPinModalOpen}
+        onClose={handlePinClose}
+        onSuccess={handlePinSuccess}
+        title="Security Verification"
+        message={pendingAction === 'edit' ? 'Enter PIN to edit record' : 'Enter PIN to delete record'}
+      />
+
+      {/* Add Reading Modal */}
+      <AddReadingModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSave={handleAddReading}
+        isLoading={isUpdating}
       />
     </div>
   );

@@ -140,115 +140,135 @@ export const ReadingsCalendar: React.FC<ReadingsCalendarProps> = ({ readings, on
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
-    <div className="bg-white rounded-lg shadow border border-slate-200 overflow-hidden">
-      {/* Calendar Header */}
-      <div className="bg-slate-50 border-b border-slate-200 px-4 py-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-slate-900">
-            {currentDate.toLocaleDateString(dateLocale, { 
-              month: 'long', 
-              year: 'numeric' 
-            })}
-          </h3>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => navigateMonth('prev')}
-              className="p-2 hover:bg-slate-200 rounded-lg transition-colors duration-200"
-              aria-label="Previous month"
-            >
-              <ChevronLeftIcon />
-            </button>
+    <div className="bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 rounded-2xl shadow-xl border border-slate-200/60 overflow-hidden backdrop-blur-sm">
+      {/* Modern Calendar Header */}
+      <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-6 py-5 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-16 translate-x-16"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12"></div>
+        
+        <div className="relative flex items-center justify-between">
+          <button
+            onClick={() => navigateMonth('prev')}
+            className="p-3 hover:bg-white/20 rounded-xl transition-all duration-300 transform hover:scale-110 backdrop-blur-sm"
+            aria-label="Previous month"
+          >
+            <ChevronLeftIcon className="text-white" />
+          </button>
+          
+          <div className="flex flex-col items-center gap-2">
+            <h2 className="text-2xl font-bold text-white drop-shadow-sm">
+              {currentDate.toLocaleDateString(dateLocale, { 
+                month: 'long', 
+                year: 'numeric' 
+              })}
+            </h2>
             <button
               onClick={() => setCurrentDate(new Date())}
-              className="px-3 py-1 text-sm bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors duration-200"
+              className="px-4 py-2 text-sm bg-white/20 text-white hover:bg-white/30 rounded-full transition-all duration-300 font-semibold backdrop-blur-sm border border-white/20 hover:scale-105 transform"
             >
               Today
             </button>
-            <button
-              onClick={() => navigateMonth('next')}
-              className="p-2 hover:bg-slate-200 rounded-lg transition-colors duration-200"
-              aria-label="Next month"
-            >
-              <ChevronRightIcon />
-            </button>
           </div>
+          
+          <button
+            onClick={() => navigateMonth('next')}
+            className="p-3 hover:bg-white/20 rounded-xl transition-all duration-300 transform hover:scale-110 backdrop-blur-sm"
+            aria-label="Next month"
+          >
+            <ChevronRightIcon className="text-white" />
+          </button>
         </div>
       </div>
 
       {/* Calendar Grid */}
-      <div className="p-4">
+      <div className="p-6">
         {/* Week Days Header */}
-        <div className="grid grid-cols-7 gap-1 mb-2">
+        <div className="grid grid-cols-7 gap-2 mb-4">
           {weekDays.map(day => (
-            <div key={day} className="p-2 text-center text-xs font-medium text-slate-500 uppercase tracking-wide">
+            <div key={day} className="p-3 text-center text-sm font-bold text-slate-600 uppercase tracking-wider">
               {day}
             </div>
           ))}
         </div>
 
         {/* Calendar Days */}
-        <div className="grid grid-cols-7 gap-1">
-          {calendarDays.map((day, index) => (
-            <div
-              key={index}
-              onClick={() => handleDateClick(day)}
-              className={`
-                relative p-2 h-12 flex items-center justify-center text-sm rounded-lg transition-all duration-200
-                ${day.isCurrentMonth ? 'text-slate-900' : 'text-slate-400'}
-                ${isToday(day.date) ? 'bg-indigo-100 text-indigo-900 font-semibold' : ''}
-                ${day.hasReadings ? 'cursor-pointer hover:bg-slate-100' : ''}
-                ${!day.isCurrentMonth ? 'opacity-50' : ''}
-              `}
-            >
-              <span className="relative z-10">{day.date.getDate()}</span>
-              
-              {/* Reading Indicator */}
-              {day.hasReadings && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className={`
-                    w-8 h-8 rounded-full flex items-center justify-center text-xs
-                    ${getStatusColor(day.averageStatus)} bg-opacity-20 border-2 border-current
-                  `}>
-                    <span className="text-lg leading-none">
-                      {getStatusEmoji(day.averageStatus)}
-                    </span>
+        <div className="grid grid-cols-7 gap-2">
+          {calendarDays.map((day, index) => {
+            const todayClass = isToday(day.date) ? 'ring-2 ring-indigo-400 bg-gradient-to-br from-indigo-100 to-purple-100 text-indigo-900 font-bold shadow-lg' : '';
+            const readingClass = day.hasReadings ? 'cursor-pointer hover:scale-105 hover:shadow-md' : '';
+            const monthClass = day.isCurrentMonth ? 'text-slate-900' : 'text-slate-400 opacity-60';
+            
+            return (
+              <div
+                key={index}
+                onClick={() => handleDateClick(day)}
+                className={`
+                  relative h-14 flex items-center justify-center text-sm rounded-xl transition-all duration-300 transform
+                  ${monthClass} ${todayClass} ${readingClass}
+                  ${day.hasReadings ? 'bg-white shadow-sm border border-slate-200/60' : 'hover:bg-slate-50'}
+                `}
+              >
+                <span className="relative z-20 font-semibold">{day.date.getDate()}</span>
+                
+                {/* Reading Indicator with Gradient */}
+                {day.hasReadings && (
+                  <>
+                    <div className={`absolute inset-1 rounded-lg bg-gradient-to-br opacity-20 ${
+                      day.averageStatus === 'critical' ? 'from-red-400 to-red-600' :
+                      day.averageStatus === 'high' ? 'from-orange-400 to-orange-600' :
+                      day.averageStatus === 'elevated' ? 'from-amber-400 to-amber-600' :
+                      day.averageStatus === 'normal' ? 'from-blue-400 to-blue-600' :
+                      'from-emerald-400 to-emerald-600'
+                    }`}></div>
+                    
+                    <div className="absolute bottom-1 right-1">
+                      <div className={`w-3 h-3 rounded-full shadow-sm ${
+                        day.averageStatus === 'critical' ? 'bg-red-500' :
+                        day.averageStatus === 'high' ? 'bg-orange-500' :
+                        day.averageStatus === 'elevated' ? 'bg-amber-500' :
+                        day.averageStatus === 'normal' ? 'bg-blue-500' :
+                        'bg-emerald-500'
+                      }`}></div>
+                    </div>
+                  </>
+                )}
+                
+                {/* Multiple readings indicator with modern design */}
+                {day.readings.length > 1 && (
+                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-lg">
+                    {day.readings.length}
                   </div>
-                </div>
-              )}
-              
-              {/* Multiple readings indicator */}
-              {day.readings.length > 1 && (
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-slate-600 text-white text-xs rounded-full flex items-center justify-center">
-                  {day.readings.length}
-                </div>
-              )}
-            </div>
-          ))}
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Legend */}
-      <div className="bg-slate-50 border-t border-slate-200 px-4 py-3">
-        <div className="flex flex-wrap items-center justify-center gap-4 text-xs">
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-            <span className="text-slate-600">Optimal</span>
+      {/* Modern Legend */}
+      <div className="bg-gradient-to-r from-slate-50 to-slate-100/50 border-t border-slate-200/60 px-6 py-4">
+        <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
+          <div className="flex items-center gap-2 group">
+            <div className="w-4 h-4 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-sm group-hover:scale-110 transition-transform duration-200"></div>
+            <span className="text-slate-700 font-medium">Optimal</span>
           </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-            <span className="text-slate-600">Normal</span>
+          <div className="flex items-center gap-2 group">
+            <div className="w-4 h-4 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 shadow-sm group-hover:scale-110 transition-transform duration-200"></div>
+            <span className="text-slate-700 font-medium">Normal</span>
           </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-            <span className="text-slate-600">Elevated</span>
+          <div className="flex items-center gap-2 group">
+            <div className="w-4 h-4 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm group-hover:scale-110 transition-transform duration-200"></div>
+            <span className="text-slate-700 font-medium">Elevated</span>
           </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-            <span className="text-slate-600">High</span>
+          <div className="flex items-center gap-2 group">
+            <div className="w-4 h-4 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 shadow-sm group-hover:scale-110 transition-transform duration-200"></div>
+            <span className="text-slate-700 font-medium">High</span>
           </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-red-500"></div>
-            <span className="text-slate-600">Critical</span>
+          <div className="flex items-center gap-2 group">
+            <div className="w-4 h-4 rounded-full bg-gradient-to-br from-red-400 to-red-600 shadow-sm group-hover:scale-110 transition-transform duration-200"></div>
+            <span className="text-slate-700 font-medium">Critical</span>
           </div>
         </div>
       </div>

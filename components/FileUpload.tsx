@@ -13,6 +13,7 @@ interface FloatingUploadButtonProps {
   onImageUpload: (files: File[]) => void;
   isLoading: boolean;
   onOpenCamera: () => void;
+  onAddManual?: () => void; // Add manual entry option
 }
 
 const UploadIcon: React.FC<{className?: string}> = ({className}) => (
@@ -28,6 +29,12 @@ const CameraIcon: React.FC<{className?: string}> = ({className}) => (
     </svg>
 );
 
+const PlusIcon: React.FC<{className?: string}> = ({className}) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+    </svg>
+);
+
 const Spinner: React.FC = () => (
     <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -37,8 +44,8 @@ const Spinner: React.FC = () => (
 
 
 // Modal Upload Component (for use inside modal)
-const UploadModal: React.FC<FileUploadProps & { isOpen: boolean; onClose: () => void }> = ({ 
-  onImageUpload, isLoading, onOpenCamera, isOpen, onClose 
+const UploadModal: React.FC<FileUploadProps & { isOpen: boolean; onClose: () => void; onAddManual?: () => void }> = ({ 
+  onImageUpload, isLoading, onOpenCamera, isOpen, onClose, onAddManual 
 }) => {
   const { t } = useLocalization();
   const [isDragging, setIsDragging] = useState(false);
@@ -163,33 +170,58 @@ const UploadModal: React.FC<FileUploadProps & { isOpen: boolean; onClose: () => 
       </div>
 
           {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-4 mt-6">
-            <button
-              onClick={() => document.getElementById('file-upload')?.click()}
-              disabled={isLoading}
-              className="w-full flex-1 flex items-center justify-center gap-3 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-3.5 px-6 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-300 dark:focus:ring-indigo-800 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed transform hover:scale-[1.02] hover:shadow-lg active:scale-[0.98] shadow-lg"
-            >
-              {isLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                  <span>{t('upload.button.processing')}</span>
-                </>
-              ) : (
-                <>
-                  <UploadIcon className="w-5 h-5" /> 
-                  <span>{t('upload.button.default')}</span>
-                </>
-              )}
-            </button>
-            <button
-              onClick={onOpenCamera}
-              disabled={isLoading}
-              aria-label={t('upload.button.camera')}
-              className="w-full sm:w-auto flex items-center justify-center gap-3 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200 font-bold py-3.5 px-6 rounded-xl border-2 border-gray-200 dark:border-gray-600 hover:border-indigo-300 dark:hover:border-indigo-500 hover:bg-gray-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg"
-            >
-              <CameraIcon className="w-5 h-5" />
-              <span>{t('upload.button.camera')}</span>
-            </button>
+          <div className="flex flex-col gap-4 mt-6">
+            {/* Manual Add Button - Primary Action */}
+            {onAddManual && (
+              <button
+                onClick={() => {
+                  onAddManual();
+                  onClose();
+                }}
+                disabled={isLoading}
+                className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-3.5 px-6 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-300 dark:focus:ring-indigo-800 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed transform hover:scale-[1.02] hover:shadow-lg active:scale-[0.98] shadow-lg"
+              >
+                <PlusIcon className="w-5 h-5" />
+                <span>Add Reading Manually</span>
+              </button>
+            )}
+            
+            {/* Divider */}
+            <div className="flex items-center gap-4">
+              <div className="flex-1 h-px bg-gray-200 dark:bg-gray-600"></div>
+              <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">or scan image</span>
+              <div className="flex-1 h-px bg-gray-200 dark:bg-gray-600"></div>
+            </div>
+            
+            {/* Image Upload Options */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => document.getElementById('file-upload')?.click()}
+                disabled={isLoading}
+                className="w-full flex-1 flex items-center justify-center gap-3 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200 font-bold py-3 px-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 hover:border-indigo-300 dark:hover:border-indigo-500 hover:bg-gray-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-400 border-t-transparent"></div>
+                    <span>{t('upload.button.processing')}</span>
+                  </>
+                ) : (
+                  <>
+                    <UploadIcon className="w-5 h-5" /> 
+                    <span>{t('upload.button.default')}</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={onOpenCamera}
+                disabled={isLoading}
+                aria-label={t('upload.button.camera')}
+                className="w-full sm:w-auto flex items-center justify-center gap-3 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200 font-bold py-3 px-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 hover:border-indigo-300 dark:hover:border-indigo-500 hover:bg-gray-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg"
+              >
+                <CameraIcon className="w-5 h-5" />
+                <span>{t('upload.button.camera')}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -198,7 +230,7 @@ const UploadModal: React.FC<FileUploadProps & { isOpen: boolean; onClose: () => 
 };
 
 // Floating Upload Button Component
-export const FileUpload: React.FC<FloatingUploadButtonProps> = ({ onImageUpload, isLoading, onOpenCamera }) => {
+export const FileUpload: React.FC<FloatingUploadButtonProps> = ({ onImageUpload, isLoading, onOpenCamera, onAddManual }) => {
   const { t } = useLocalization();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -209,7 +241,7 @@ export const FileUpload: React.FC<FloatingUploadButtonProps> = ({ onImageUpload,
         onClick={() => setIsModalOpen(true)}
         disabled={isLoading}
         className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 flex items-center justify-center z-40 disabled:opacity-60 disabled:cursor-not-allowed hover:scale-110 active:scale-95 animate-pulse-glow-subtle"
-        aria-label={t('upload.title')}
+        aria-label="Add Reading"
       >
         {isLoading ? (
           <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
@@ -227,6 +259,7 @@ export const FileUpload: React.FC<FloatingUploadButtonProps> = ({ onImageUpload,
         onImageUpload={onImageUpload}
         isLoading={isLoading}
         onOpenCamera={onOpenCamera}
+        onAddManual={onAddManual}
       />
     </>
   );

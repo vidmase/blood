@@ -131,6 +131,14 @@ export const CalendarReadingModal: React.FC<CalendarReadingModalProps> = ({
                         </div>
                       </div>
                     </div>
+                    
+                    {/* Notes */}
+                    {reading.notes && (
+                      <div className="mt-4 pt-4 border-t border-slate-200">
+                        <div className="text-xs text-slate-500 mb-1 uppercase tracking-wide">Notes</div>
+                        <p className="text-sm text-slate-700">{reading.notes}</p>
+                      </div>
+                    )}
                   </div>
                 );
               })}

@@ -33,11 +33,12 @@ class BloodPressureService {
   // Convert database reading to app reading format
   private convertToAppReading(dbReading: DatabaseReading): BloodPressureReading {
     return {
-      id: parseInt(dbReading.id.replace(/-/g, '').substring(0, 15), 16), // Convert UUID to number for compatibility
+      id: dbReading.id, // Keep UUID as string for proper database operations
       date: dbReading.reading_date,
       systolic: dbReading.systolic,
       diastolic: dbReading.diastolic,
       pulse: dbReading.pulse,
+      notes: dbReading.notes,
     };
   }
 

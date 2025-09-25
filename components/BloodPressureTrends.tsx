@@ -282,74 +282,465 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
     return <BloodPressureGauge readings={readings} />;
   }
 
-  // Chart View
+  // Modern Enhanced Chart View
   if (viewMode === 'chart') {
+    const chartData = readings.slice(0, 12).reverse(); // Show last 12 readings for cleaner display
+    
+    // Smart scaling for better visualization
+    const allSystolic = chartData.map(r => r.systolic);
+    const allDiastolic = chartData.map(r => r.diastolic);
+    const allPulse = chartData.map(r => r.pulse);
+    
+    const maxSystolic = Math.max(...allSystolic);
+    const minSystolic = Math.min(...allSystolic);
+    const maxDiastolic = Math.max(...allDiastolic);
+    const minDiastolic = Math.min(...allDiastolic);
+    const maxPulse = Math.max(...allPulse);
+    const minPulse = Math.min(...allPulse);
+    
+    // Create separate scales for better visualization
+    const bpMaxValue = Math.max(maxSystolic + 15, 160);
+    const bpMinValue = Math.max(minDiastolic - 15, 40);
+    const bpRange = bpMaxValue - bpMinValue;
+    
+    const pulseMaxValue = Math.max(maxPulse + 10, 100);
+    const pulseMinValue = Math.max(minPulse - 10, 50);
+    const pulseRange = pulseMaxValue - pulseMinValue;
+
+    // Create chart points with improved positioning
+    const createBPPoints = (data: number[]) => {
+      return data.map((value, index) => {
+        const x = (index / Math.max(data.length - 1, 1)) * 100;
+        const y = ((bpMaxValue - value) / bpRange) * 100;
+        return { x, y, value, index };
+      });
+    };
+
+    const createPulsePoints = (data: number[]) => {
+      return data.map((value, index) => {
+        const x = (index / Math.max(data.length - 1, 1)) * 100;
+        // Map pulse to the same visual space as BP for comparison
+        const normalizedValue = ((value - pulseMinValue) / pulseRange) * bpRange + bpMinValue;
+        const y = ((bpMaxValue - normalizedValue) / bpRange) * 100;
+        return { x, y, value, index };
+      });
+    };
+
+    const systolicPoints = createBPPoints(allSystolic);
+    const diastolicPoints = createBPPoints(allDiastolic);
+    const pulsePoints = createPulsePoints(allPulse);
+
     return (
-      <div className="bg-white rounded-2xl shadow-lg border border-slate-200/60 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h3 className="text-xl font-bold text-slate-800">Blood Pressure Chart</h3>
-            <p className="text-sm text-slate-600">Combined trend visualization</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setViewMode('cards')}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors"
-            >
-              Cards
-            </button>
-            <button
-              onClick={() => setViewMode('chart')}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium bg-indigo-100 text-indigo-700"
-            >
-              Chart
-            </button>
-            <button
-              onClick={() => setViewMode('compact')}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors"
-            >
-              Compact
-            </button>
-            <button
-              onClick={() => setViewMode('gauge')}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors"
-            >
-              Gauge
-            </button>
+      <div className="bg-gradient-to-br from-white to-slate-50/30 rounded-2xl shadow-xl border border-slate-200/60 overflow-hidden">
+        {/* Enhanced Header */}
+        <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-slate-200/60 px-6 py-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h3 className="text-2xl font-bold text-slate-900">Blood Pressure Trends</h3>
+              <p className="text-sm text-slate-600 mt-1">Interactive chart showing your last {chartData.length} readings</p>
+            </div>
+            <div className="flex items-center gap-2 bg-white/60 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('cards')}
+                className="px-3 py-1.5 rounded-md text-sm font-medium text-slate-600 hover:bg-white hover:shadow-sm transition-all"
+              >
+                Cards
+              </button>
+              <button
+                onClick={() => setViewMode('chart')}
+                className="px-3 py-1.5 rounded-md text-sm font-medium bg-white text-indigo-700 shadow-sm"
+              >
+                Chart
+              </button>
+              <button
+                onClick={() => setViewMode('compact')}
+                className="px-3 py-1.5 rounded-md text-sm font-medium text-slate-600 hover:bg-white hover:shadow-sm transition-all"
+              >
+                Compact
+              </button>
+              <button
+                onClick={() => setViewMode('gauge')}
+                className="px-3 py-1.5 rounded-md text-sm font-medium text-slate-600 hover:bg-white hover:shadow-sm transition-all"
+              >
+                Gauge
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="relative h-64 mb-6">
-          <svg width="100%" height="100%" className="overflow-visible">
-            {/* Grid lines */}
-            {[0, 25, 50, 75, 100].map(y => (
-              <line
-                key={y}
-                x1="0"
-                y1={`${y}%`}
-                x2="100%"
-                y2={`${y}%`}
-                stroke="#f1f5f9"
-                strokeWidth="1"
-              />
-            ))}
-            
-            {/* Systolic line */}
-            <Sparkline data={systolicData} color="#dc2626" height={256} />
-            
-            {/* Diastolic line */}
-            <Sparkline data={diastolicData} color="#2563eb" height={256} />
-          </svg>
-        </div>
+        <div className="p-8">
+          {/* Modern Legend with Health Zones */}
+          <div className="mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+              {/* Systolic Legend Card */}
+              <div className="bg-gradient-to-br from-red-50 to-red-100/50 rounded-2xl p-4 border border-red-200/60">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-6 h-6 bg-gradient-to-r from-red-500 to-red-600 rounded-full shadow-lg flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-red-700">Systolic Pressure</h4>
+                    <p className="text-xs text-red-600">Upper reading</p>
+                  </div>
+                </div>
+                <div className="space-y-1 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Current Avg:</span>
+                    <span className="font-bold text-red-700">{Math.round(allSystolic.reduce((a, b) => a + b, 0) / allSystolic.length)} mmHg</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Normal:</span>
+                    <span className="text-slate-500">&lt;120 mmHg</span>
+                  </div>
+                </div>
+              </div>
 
-        <div className="flex items-center justify-center gap-6">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-red-600 rounded-full"></div>
-            <span className="text-sm font-medium text-slate-700">Systolic</span>
+              {/* Diastolic Legend Card */}
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-2xl p-4 border border-blue-200/60">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full shadow-lg flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-blue-700">Diastolic Pressure</h4>
+                    <p className="text-xs text-blue-600">Lower reading</p>
+                  </div>
+                </div>
+                <div className="space-y-1 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Current Avg:</span>
+                    <span className="font-bold text-blue-700">{Math.round(allDiastolic.reduce((a, b) => a + b, 0) / allDiastolic.length)} mmHg</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Normal:</span>
+                    <span className="text-slate-500">&lt;80 mmHg</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pulse Legend Card */}
+              <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-2xl p-4 border border-emerald-200/60">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-6 h-6 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full shadow-lg flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-emerald-700">Heart Rate</h4>
+                    <p className="text-xs text-emerald-600">Pulse rate</p>
+                  </div>
+                </div>
+                <div className="space-y-1 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Current Avg:</span>
+                    <span className="font-bold text-emerald-700">{Math.round(allPulse.reduce((a, b) => a + b, 0) / allPulse.length)} BPM</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Normal:</span>
+                    <span className="text-slate-500">60-100 BPM</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-            <span className="text-sm font-medium text-slate-700">Diastolic</span>
+
+          {/* Modern Professional Chart */}
+          <div className="relative bg-gradient-to-br from-white to-slate-50/30 rounded-2xl p-8 shadow-xl border border-slate-200/60">
+            {/* Chart Title */}
+            <div className="mb-6 text-center">
+              <h4 className="text-lg font-bold text-slate-800 mb-2">Blood Pressure Trend Analysis</h4>
+              <p className="text-sm text-slate-600">Last {chartData.length} readings • {new Date(chartData[0]?.date).toLocaleDateString()} - {new Date(chartData[chartData.length - 1]?.date).toLocaleDateString()}</p>
+            </div>
+
+            <div className="relative h-96">
+              <svg width="100%" height="100%" className="overflow-visible" style={{ background: 'linear-gradient(135deg, #fafafa 0%, #f8fafc 100%)' }}>
+                {/* Enhanced Background Grid */}
+                <defs>
+                  <linearGradient id="chartBg" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#ffffff" stopOpacity="0.8"/>
+                    <stop offset="100%" stopColor="#f8fafc" stopOpacity="0.9"/>
+                  </linearGradient>
+                  <filter id="glow">
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                    <feMerge> 
+                      <feMergeNode in="coloredBlur"/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
+                  <filter id="shadow">
+                    <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.2"/>
+                  </filter>
+                </defs>
+                
+                <rect width="100%" height="100%" fill="url(#chartBg)" rx="12"/>
+
+                {/* Professional Grid Lines */}
+                {[0, 20, 40, 60, 80, 100].map((percent, index) => {
+                  const value = Math.round(bpMaxValue - (percent / 100) * bpRange);
+                  const isMainLine = percent === 0 || percent === 100 || percent === 50;
+                  return (
+                    <g key={percent}>
+                      <line
+                        x1="5%"
+                        y1={`${percent}%`}
+                        x2="95%"
+                        y2={`${percent}%`}
+                        stroke={isMainLine ? "#cbd5e1" : "#e2e8f0"}
+                        strokeWidth={isMainLine ? "1.5" : "0.8"}
+                        strokeDasharray={isMainLine ? "none" : "4,4"}
+                        opacity={isMainLine ? "0.8" : "0.4"}
+                      />
+                      <text
+                        x="2%"
+                        y={`${percent}%`}
+                        textAnchor="start"
+                        dominantBaseline="middle"
+                        className="text-xs fill-slate-600 font-semibold"
+                        style={{ textShadow: '0 1px 2px rgba(255,255,255,0.8)' }}
+                      >
+                        {value}
+                      </text>
+                    </g>
+                  );
+                })}
+
+                {/* Enhanced Gradient Definitions */}
+                <defs>
+                  <linearGradient id="systolicGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#ef4444" stopOpacity="0.4"/>
+                    <stop offset="50%" stopColor="#ef4444" stopOpacity="0.2"/>
+                    <stop offset="100%" stopColor="#ef4444" stopOpacity="0.05"/>
+                  </linearGradient>
+                  <linearGradient id="diastolicGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.4"/>
+                    <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.2"/>
+                    <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.05"/>
+                  </linearGradient>
+                  <linearGradient id="pulseGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.3"/>
+                    <stop offset="100%" stopColor="#10b981" stopOpacity="0.05"/>
+                  </linearGradient>
+                </defs>
+                
+                {/* Systolic Area with Enhanced Gradient */}
+                <path
+                  d={`M 5,100% ${systolicPoints.map(p => `L ${5 + (p.x * 0.9)}%,${p.y}%`).join(' ')} L 95%,100% Z`}
+                  fill="url(#systolicGradient)"
+                  opacity="0.8"
+                />
+                
+                {/* Diastolic Area with Enhanced Gradient */}
+                <path
+                  d={`M 5,100% ${diastolicPoints.map(p => `L ${5 + (p.x * 0.9)}%,${p.y}%`).join(' ')} L 95%,100% Z`}
+                  fill="url(#diastolicGradient)"
+                  opacity="0.8"
+                />
+                
+                {/* Modern Systolic Line */}
+                <path
+                  d={`M ${systolicPoints.map(p => `${5 + (p.x * 0.9)},${p.y}`).join(' L ')}`}
+                  fill="none"
+                  stroke="url(#systolicLineGradient)"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  filter="url(#shadow)"
+                />
+                
+                {/* Modern Diastolic Line */}
+                <path
+                  d={`M ${diastolicPoints.map(p => `${5 + (p.x * 0.9)},${p.y}`).join(' L ')}`}
+                  fill="none"
+                  stroke="url(#diastolicLineGradient)"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  filter="url(#shadow)"
+                />
+
+                {/* Modern Pulse Line */}
+                <path
+                  d={`M ${pulsePoints.map(p => `${5 + (p.x * 0.9)},${p.y}`).join(' L ')}`}
+                  fill="none"
+                  stroke="#10b981"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeDasharray="8,4"
+                  filter="url(#shadow)"
+                  opacity="0.9"
+                />
+
+                {/* Line Gradients */}
+                <defs>
+                  <linearGradient id="systolicLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#dc2626"/>
+                    <stop offset="50%" stopColor="#ef4444"/>
+                    <stop offset="100%" stopColor="#f87171"/>
+                  </linearGradient>
+                  <linearGradient id="diastolicLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#1d4ed8"/>
+                    <stop offset="50%" stopColor="#3b82f6"/>
+                    <stop offset="100%" stopColor="#60a5fa"/>
+                  </linearGradient>
+                </defs>
+
+                {/* Enhanced Data Points with Glow Effect */}
+                {systolicPoints.map((point, index) => (
+                  <g key={`systolic-${index}`}>
+                    <circle
+                      cx={`${5 + (point.x * 0.9)}%`}
+                      cy={`${point.y}%`}
+                      r="8"
+                      fill="#ef4444"
+                      fillOpacity="0.2"
+                      stroke="none"
+                    />
+                    <circle
+                      cx={`${5 + (point.x * 0.9)}%`}
+                      cy={`${point.y}%`}
+                      r="5"
+                      fill="#ef4444"
+                      stroke="white"
+                      strokeWidth="3"
+                      filter="url(#shadow)"
+                      className="hover:r-7 transition-all cursor-pointer"
+                    />
+                    <text
+                      x={`${5 + (point.x * 0.9)}%`}
+                      y={`${point.y - 8}%`}
+                      textAnchor="middle"
+                      className="text-xs font-bold fill-red-600 opacity-0 hover:opacity-100 transition-opacity"
+                    >
+                      {point.value}
+                    </text>
+                  </g>
+                ))}
+
+                {diastolicPoints.map((point, index) => (
+                  <g key={`diastolic-${index}`}>
+                    <circle
+                      cx={`${5 + (point.x * 0.9)}%`}
+                      cy={`${point.y}%`}
+                      r="8"
+                      fill="#3b82f6"
+                      fillOpacity="0.2"
+                      stroke="none"
+                    />
+                    <circle
+                      cx={`${5 + (point.x * 0.9)}%`}
+                      cy={`${point.y}%`}
+                      r="5"
+                      fill="#3b82f6"
+                      stroke="white"
+                      strokeWidth="3"
+                      filter="url(#shadow)"
+                      className="hover:r-7 transition-all cursor-pointer"
+                    />
+                    <text
+                      x={`${5 + (point.x * 0.9)}%`}
+                      y={`${point.y - 8}%`}
+                      textAnchor="middle"
+                      className="text-xs font-bold fill-blue-600 opacity-0 hover:opacity-100 transition-opacity"
+                    >
+                      {point.value}
+                    </text>
+                  </g>
+                ))}
+
+                {pulsePoints.map((point, index) => (
+                  <g key={`pulse-${index}`}>
+                    <circle
+                      cx={`${5 + (point.x * 0.9)}%`}
+                      cy={`${point.y}%`}
+                      r="6"
+                      fill="#10b981"
+                      fillOpacity="0.2"
+                      stroke="none"
+                    />
+                    <circle
+                      cx={`${5 + (point.x * 0.9)}%`}
+                      cy={`${point.y}%`}
+                      r="4"
+                      fill="#10b981"
+                      stroke="white"
+                      strokeWidth="2"
+                      filter="url(#shadow)"
+                      className="hover:r-6 transition-all cursor-pointer"
+                    />
+                    <text
+                      x={`${5 + (point.x * 0.9)}%`}
+                      y={`${point.y - 6}%`}
+                      textAnchor="middle"
+                      className="text-xs font-bold fill-emerald-600 opacity-0 hover:opacity-100 transition-opacity"
+                    >
+                      {point.value}
+                    </text>
+                  </g>
+                ))}
+              </svg>
+
+              {/* Y-axis label */}
+              <div className="absolute -left-12 top-1/2 transform -rotate-90 -translate-y-1/2">
+                <span className="text-xs font-medium text-slate-600">mmHg / BPM</span>
+              </div>
+            </div>
+
+            {/* Enhanced X-axis with Better Date Display */}
+            <div className="mt-6 px-4">
+              <div className="flex justify-between items-center">
+                {chartData.map((reading, index) => {
+                  const showLabel = index === 0 || index === chartData.length - 1 || index % Math.ceil(chartData.length / 4) === 0;
+                  if (!showLabel) return <div key={index} className="w-1"></div>;
+                  
+                  return (
+                    <div key={index} className="flex flex-col items-center">
+                      <div className="w-0.5 h-3 bg-slate-300 mb-2"></div>
+                      <div className="text-xs font-semibold text-slate-600 text-center">
+                        <div>{new Date(reading.date).toLocaleDateString(undefined, { 
+                          month: 'short', 
+                          day: 'numeric' 
+                        })}</div>
+                        <div className="text-xs text-slate-400 mt-0.5">
+                          {new Date(reading.date).toLocaleTimeString(undefined, { 
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true 
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Health Zone Indicators */}
+            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-gradient-to-r from-emerald-50 to-emerald-100/50 rounded-xl p-3 border border-emerald-200/60">
+                <div className="text-center">
+                  <div className="text-xs font-semibold text-emerald-700 mb-1">Optimal BP</div>
+                  <div className="text-sm font-bold text-emerald-800">&lt;120/80</div>
+                </div>
+              </div>
+              <div className="bg-gradient-to-r from-yellow-50 to-yellow-100/50 rounded-xl p-3 border border-yellow-200/60">
+                <div className="text-center">
+                  <div className="text-xs font-semibold text-yellow-700 mb-1">Elevated</div>
+                  <div className="text-sm font-bold text-yellow-800">120-129/&lt;80</div>
+                </div>
+              </div>
+              <div className="bg-gradient-to-r from-orange-50 to-orange-100/50 rounded-xl p-3 border border-orange-200/60">
+                <div className="text-center">
+                  <div className="text-xs font-semibold text-orange-700 mb-1">High Stage 1</div>
+                  <div className="text-sm font-bold text-orange-800">130-139/80-89</div>
+                </div>
+              </div>
+              <div className="bg-gradient-to-r from-red-50 to-red-100/50 rounded-xl p-3 border border-red-200/60">
+                <div className="text-center">
+                  <div className="text-xs font-semibold text-red-700 mb-1">High Stage 2</div>
+                  <div className="text-sm font-bold text-red-800">≥140/90</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
