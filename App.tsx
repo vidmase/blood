@@ -4,6 +4,8 @@ import 'jspdf-autotable';
 import { Header } from './components/Header';
 import { FileUpload } from './components/FileUpload';
 import { ReadingsTable } from './components/ReadingsTable';
+import { ReadingsCalendar } from './components/ReadingsCalendar';
+import { CalendarReadingModal } from './components/CalendarReadingModal';
 import { AnalysisChart } from './components/AnalysisChart';
 import { AnalysisSummary } from './components/AnalysisSummary';
 import { DateFilter } from './components/DateFilter';
@@ -65,6 +67,10 @@ const MainApp: React.FC = () => {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
   const [isInsightsModalOpen, setIsInsightsModalOpen] = useState(false);
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(null);
+  const [selectedDateReadings, setSelectedDateReadings] = useState<BloodPressureReading[]>([]);
+  const [currentView, setCurrentView] = useState<'table' | 'calendar'>('table');
   
   const [profile, setProfile] = useState<UserProfile>(() => {
     try {
@@ -454,6 +460,12 @@ const MainApp: React.FC = () => {
     handleImageUpload([imageFile]);
   };
 
+  const handleCalendarDateSelect = (date: Date, readings: BloodPressureReading[]) => {
+    setSelectedCalendarDate(date);
+    setSelectedDateReadings(readings);
+    setIsCalendarModalOpen(true);
+  };
+
   return (
     <div className="min-h-screen flex flex-col font-sans text-[var(--c-text-primary)]">
       <Header 
@@ -478,21 +490,66 @@ const MainApp: React.FC = () => {
             <div className="bg-[var(--c-surface)] p-6 rounded-2xl shadow-lg shadow-indigo-100/50 animate-fadeInUp">
               <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4">
                 <h2 className="text-2xl font-bold text-[var(--c-text-primary)]">{t('readings.title')}</h2>
-                <button
-                  onClick={() => setIsExportModalOpen(true)}
-                  disabled={filteredReadings.length === 0}
-                  className="flex items-center justify-center gap-2 bg-[var(--c-surface)] text-[var(--c-text-secondary)] font-bold py-2 px-4 rounded-lg border border-[var(--c-border)] hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  {t('export.button')}
-                </button>
+                <div className="flex items-center gap-2">
+                  {/* View Toggle */}
+                  <div className="flex bg-slate-100 rounded-lg p-1">
+                    <button
+                      onClick={() => setCurrentView('table')}
+                      className={`px-3 py-1 rounded-md text-sm font-medium transition-all duration-200 ${
+                        currentView === 'table' 
+                          ? 'bg-white text-slate-900 shadow-sm' 
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 6h18m-9 8h9" />
+                      </svg>
+                      Table
+                    </button>
+                    <button
+                      onClick={() => setCurrentView('calendar')}
+                      className={`px-3 py-1 rounded-md text-sm font-medium transition-all duration-200 ${
+                        currentView === 'calendar' 
+                          ? 'bg-white text-slate-900 shadow-sm' 
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      Calendar
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => setIsExportModalOpen(true)}
+                    disabled={filteredReadings.length === 0}
+                    className="flex items-center justify-center gap-2 bg-[var(--c-surface)] text-[var(--c-text-secondary)] font-bold py-2 px-4 rounded-lg border border-[var(--c-border)] hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    {t('export.button')}
+                  </button>
+                </div>
               </div>
-              <DateFilter onFilterChange={handleFilterChange} startDate={startDate} endDate={endDate} />
-              <div className="mt-4">
-                <ReadingsTable readings={filteredReadings} totalReadings={readings.length} />
-              </div>
+              
+              {currentView === 'table' && (
+                <>
+                  <DateFilter onFilterChange={handleFilterChange} startDate={startDate} endDate={endDate} />
+                  <div className="mt-4">
+                    <ReadingsTable readings={filteredReadings} totalReadings={readings.length} />
+                  </div>
+                </>
+              )}
+              
+              {currentView === 'calendar' && (
+                <div className="mt-4">
+                  <ReadingsCalendar 
+                    readings={readings} 
+                    onDateSelect={handleCalendarDateSelect}
+                  />
+                </div>
+              )}
             </div>
 
             <BloodPressureTrends readings={filteredReadings} />
@@ -601,6 +658,14 @@ const MainApp: React.FC = () => {
             onCapture={handleCapture}
         />
       )}
+      
+      {/* Calendar Reading Modal */}
+      <CalendarReadingModal
+        isOpen={isCalendarModalOpen}
+        onClose={() => setIsCalendarModalOpen(false)}
+        date={selectedCalendarDate}
+        readings={selectedDateReadings}
+      />
     </div>
   );
 };
