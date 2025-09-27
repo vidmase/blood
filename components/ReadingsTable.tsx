@@ -185,7 +185,7 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                 </div>
-                <h3 className="text-xl font-semibold text-slate-800 mb-2">No Readings Found</h3>
+                <h3 className="text-xl font-semibold text-slate-800 mb-2">{t('table.noReadingsFound')}</h3>
                 <p className="text-slate-600">
                   {hasOriginalReadings
                     ? t('table.empty.filtered')
@@ -199,9 +199,13 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
             <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-slate-200/60 px-6 py-5">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h3 className="text-2xl font-bold text-slate-900">Blood Pressure History</h3>
+                  <h3 className="text-2xl font-bold text-slate-900">{t('table.bloodPressureHistory')}</h3>
                   <p className="text-sm text-slate-600 mt-1">
-                    Showing {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, readings.length)} of {readings.length} readings
+                    {t('table.showingReadings', {
+                      start: ((currentPage - 1) * itemsPerPage) + 1,
+                      end: Math.min(currentPage * itemsPerPage, readings.length),
+                      total: readings.length
+                    })}
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
@@ -220,7 +224,7 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
                   </div>
                   <div className="hidden sm:flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"></div>
-                    <span className="text-xs font-medium text-slate-600">Latest Data</span>
+                    <span className="text-xs font-medium text-slate-600">{t('table.latestData')}</span>
                   </div>
                 </div>
               </div>
@@ -231,13 +235,13 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
               <table className="w-full min-w-[800px]">
                 <thead>
                   <tr className="bg-gradient-to-r from-slate-50 via-indigo-50/30 to-purple-50/30 border-b-2 border-indigo-100">
-                    <th className="px-3 lg:px-6 py-4 text-left text-xs lg:text-sm font-bold text-slate-800 uppercase tracking-wide w-[15%]">Date & Time</th>
-                    <th className="px-3 lg:px-6 py-4 text-center text-xs lg:text-sm font-bold text-slate-800 uppercase tracking-wide w-[20%]">Blood Pressure</th>
-                    <th className="px-3 lg:px-6 py-4 text-center text-xs lg:text-sm font-bold text-slate-800 uppercase tracking-wide w-[15%]">Pulse</th>
-                    <th className="px-3 lg:px-6 py-4 text-center text-xs lg:text-sm font-bold text-slate-800 uppercase tracking-wide w-[15%]">Assessment</th>
-                    <th className="px-3 lg:px-6 py-4 text-left text-xs lg:text-sm font-bold text-slate-800 uppercase tracking-wide w-[20%]">Notes</th>
+                    <th className="px-3 lg:px-6 py-4 text-left text-xs lg:text-sm font-bold text-slate-800 uppercase tracking-wide w-[15%]">{t('table.dateTime')}</th>
+                    <th className="px-3 lg:px-6 py-4 text-center text-xs lg:text-sm font-bold text-slate-800 uppercase tracking-wide w-[20%]">{t('table.bloodPressure')}</th>
+                    <th className="px-3 lg:px-6 py-4 text-center text-xs lg:text-sm font-bold text-slate-800 uppercase tracking-wide w-[15%]">{t('table.pulse')}</th>
+                    <th className="px-3 lg:px-6 py-4 text-center text-xs lg:text-sm font-bold text-slate-800 uppercase tracking-wide w-[15%]">{t('table.assessment')}</th>
+                    <th className="px-3 lg:px-6 py-4 text-left text-xs lg:text-sm font-bold text-slate-800 uppercase tracking-wide w-[20%]">{t('table.notes')}</th>
                     {(onEditReading || onDeleteReading) && (
-                      <th className="px-3 lg:px-6 py-4 text-center text-xs lg:text-sm font-bold text-slate-800 uppercase tracking-wide w-[15%]">Actions</th>
+                      <th className="px-3 lg:px-6 py-4 text-center text-xs lg:text-sm font-bold text-slate-800 uppercase tracking-wide w-[15%]">{t('table.actions')}</th>
                     )}
                   </tr>
                 </thead>
@@ -338,7 +342,7 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
                                   onClick={() => onEditReading(reading)}
                                   className="px-2 lg:px-3 py-1 lg:py-1.5 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white text-xs lg:text-sm font-semibold rounded-md lg:rounded-lg shadow-md hover:shadow-lg hover:from-indigo-600 hover:to-indigo-700 transition-all duration-200 transform hover:scale-105 w-full lg:w-auto"
                                 >
-                                  Edit
+                                  {t('table.edit')}
                                 </button>
                               )}
                               {onDeleteReading && (
@@ -346,7 +350,7 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
                                   onClick={() => onDeleteReading(reading)}
                                   className="px-2 lg:px-3 py-1 lg:py-1.5 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs lg:text-sm font-semibold rounded-md lg:rounded-lg shadow-md hover:shadow-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 transform hover:scale-105 w-full lg:w-auto"
                                 >
-                                  Delete
+                                  {t('table.delete')}
                                 </button>
                               )}
                             </div>

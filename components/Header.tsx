@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { useLocalization } from '../context/LocalizationContext';
 import { useAuth } from '../context/AuthContext';
 import { UserProfile } from './auth/UserProfile';
+import { MiniGauges } from './MiniGauges';
+import type { BloodPressureReading } from '../types';
 
 const HeartbeatIcon: React.FC = () => (
   <svg
@@ -27,9 +29,10 @@ interface HeaderProps {
     onGenerateInsights?: () => void;
     isFetchingInsights?: boolean;
     insightsAvailable?: boolean;
+    readings?: BloodPressureReading[];
 }
 
-export const Header: React.FC<HeaderProps> = ({ userName, onOpenSettings, onAnalyze, isAnalyzing = false, canAnalyze = true, onGenerateInsights, isFetchingInsights = false, insightsAvailable = false }) => {
+export const Header: React.FC<HeaderProps> = ({ userName, onOpenSettings, onAnalyze, isAnalyzing = false, canAnalyze = true, onGenerateInsights, isFetchingInsights = false, insightsAvailable = false, readings = [] }) => {
   const { t } = useLocalization();
   const { user } = useAuth();
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -39,67 +42,49 @@ export const Header: React.FC<HeaderProps> = ({ userName, onOpenSettings, onAnal
   return (
     <>
       <header className="bg-[var(--c-surface)] shadow-md shadow-slate-200/50 dark:shadow-black/20 sticky top-0 z-10 backdrop-blur-lg animate-fadeInUp">
-        <div className="container mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <HeartbeatIcon />
-            <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[var(--c-primary)] to-[var(--c-secondary)]">
+        <div className="container mx-auto px-4 md:px-8 xl:px-12 2xl:px-16 py-4 xl:py-6 flex items-center justify-between">
+          <div className="flex items-center space-x-3 xl:space-x-4">
+            <div className="xl:scale-110 2xl:scale-125">
+              <HeartbeatIcon />
+            </div>
+            <h1 className="text-2xl xl:text-3xl 2xl:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[var(--c-primary)] to-[var(--c-secondary)]">
               {t('header.title')}
             </h1>
           </div>
-          <div className="flex items-center space-x-2 sm:space-x-4">
-            {/* AI Analysis Button */}
-            {typeof onAnalyze === 'function' && (
+          
+          {/* Mini Gauges - Center */}
+          <div className="flex-1 flex justify-center">
+            <MiniGauges readings={readings} />
+          </div>
+          
+          <div className="flex items-center space-x-3 xl:space-x-6">
+            {/* User Profile and Settings */}
+            <div className="flex items-center space-x-3 xl:space-x-4">
+              {user && (
+                <div className="flex items-center space-x-3 xl:space-x-4">
+                  <span className="text-sm xl:text-base font-medium text-[var(--c-text-secondary)] hidden lg:block">
+                    Welcome, <span className="font-semibold text-[var(--c-text-primary)]">{displayName}</span>
+                  </span>
+                  <button
+                    onClick={() => setShowProfileModal(true)}
+                    className="flex items-center justify-center h-10 w-10 xl:h-12 xl:w-12 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm xl:text-base font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                    title="View Profile"
+                  >
+                    {displayName.charAt(0).toUpperCase()}
+                  </button>
+                </div>
+              )}
               <button
-                onClick={onAnalyze}
-                disabled={!canAnalyze || isAnalyzing}
-                className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--c-border)] text-[var(--c-text-secondary)] hover:bg-slate-100 dark:hover:bg-slate-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Run AI Analysis"
+                onClick={onOpenSettings}
+                className="p-2.5 xl:p-3 rounded-full text-[var(--c-text-secondary)] hover:bg-[var(--c-primary-light)] hover:text-[var(--c-primary)] transition-all duration-300 hover:shadow-lg"
+                aria-label={t('header.settingsAriaLabel')}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${isAnalyzing ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 3v3m0 12v3m9-9h-3M6 12H3m13.364 5.364l-2.121-2.121M8.757 8.757 6.636 6.636m10.728 0-2.121 2.121M8.757 15.243l-2.121 2.121" strokeLinecap="round" strokeLinejoin="round"/>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 xl:h-7 xl:w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span className="text-sm font-medium">AI Analysis</span>
               </button>
-            )}
-
-            {/* Health Insights Button */}
-            {typeof onGenerateInsights === 'function' && (
-              <button
-                onClick={onGenerateInsights}
-                disabled={isFetchingInsights}
-                className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--c-border)] text-[var(--c-text-secondary)] hover:bg-slate-100 dark:hover:bg-slate-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                title={insightsAvailable ? 'Refresh Insights' : 'Generate Insights'}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${isFetchingInsights ? 'animate-pulse' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 2a7 7 0 00-7 7c0 2.577 1.5 4.5 3 6 1 1 2 2 2 3v2h4v-2c0-1 1-2 2-3 1.5-1.5 3-3.423 3-6a7 7 0 00-7-7z" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                <span className="text-sm font-medium">{insightsAvailable ? 'Insights' : 'Get Insights'}</span>
-              </button>
-            )}
-            {user && (
-              <div className="flex items-center space-x-3">
-                <span className="text-sm font-medium text-[var(--c-text-secondary)] hidden sm:block">
-                  Welcome, {displayName}
-                </span>
-                <button
-                  onClick={() => setShowProfileModal(true)}
-                  className="flex items-center justify-center h-8 w-8 rounded-full bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors"
-                  title="View Profile"
-                >
-                  {displayName.charAt(0).toUpperCase()}
-                </button>
-              </div>
-            )}
-            <button
-              onClick={onOpenSettings}
-              className="p-2 rounded-full text-[var(--c-text-secondary)] hover:bg-[var(--c-primary-light)] hover:text-[var(--c-primary)] transition-colors duration-200"
-              aria-label={t('header.settingsAriaLabel')}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </button>
+            </div>
           </div>
         </div>
       </header>

@@ -17,14 +17,19 @@ const ChartIcon: React.FC<{className?: string}> = ({className}) => (
     </svg>
 );
 
-const StatCard: React.FC<{title: string; value: string | number; icon: React.ReactNode; color: string}> = ({title, value, icon, color}) => (
-    <div className="bg-white p-4 rounded-xl border border-slate-200/80 flex items-center gap-4">
-        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${color}`}>
-            {icon}
-        </div>
-        <div>
-            <p className="text-sm font-medium text-slate-500">{title}</p>
-            <p className="text-2xl font-bold text-slate-800">{value}</p>
+const StatCard: React.FC<{title: string; value: string | number; icon: React.ReactNode; color: string; subtitle?: string}> = ({title, value, icon, color, subtitle}) => (
+    <div className="bg-white p-4 rounded-xl border border-slate-200/80">
+        <div className="flex items-center gap-4">
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${color}`}>
+                {icon}
+            </div>
+            <div className="flex-1">
+                <p className="text-sm font-medium text-slate-500">{title}</p>
+                <p className="text-2xl font-bold text-slate-800">{value}</p>
+                {subtitle && (
+                    <p className="text-xs text-slate-400 mt-1">{subtitle}</p>
+                )}
+            </div>
         </div>
     </div>
 );
@@ -40,6 +45,10 @@ export const ReportsDashboard: React.FC<ReportsDashboardProps> = ({ readings, st
         const totalDiastolic = readings.reduce((sum, r) => sum + r.diastolic, 0);
         const highSystolic = Math.max(...readings.map(r => r.systolic));
         const highDiastolic = Math.max(...readings.map(r => r.diastolic));
+
+        // Find the reading with the highest systolic pressure
+        const highestSystolicReading = readings.find(r => r.systolic === highSystolic);
+        const highestDiastolicReading = readings.find(r => r.diastolic === highDiastolic);
         
         const timeOfDayData: { [key: string]: { sys: number[], dia: number[] } } = {
             Morning: { sys: [], dia: [] }, // 5am-12pm
@@ -88,6 +97,8 @@ export const ReportsDashboard: React.FC<ReportsDashboardProps> = ({ readings, st
             avgDiastolic: Math.round(totalDiastolic / readings.length),
             highSystolic,
             highDiastolic,
+            highestSystolicDate: highestSystolicReading?.date,
+            highestDiastolicDate: highestDiastolicReading?.date,
             totalReadings: readings.length,
             chartData,
             consistency,
@@ -98,7 +109,7 @@ export const ReportsDashboard: React.FC<ReportsDashboardProps> = ({ readings, st
         return null;
     }
 
-    const { avgSystolic, avgDiastolic, highSystolic, highDiastolic, totalReadings, chartData, consistency } = stats;
+    const { avgSystolic, avgDiastolic, highSystolic, highDiastolic, highestSystolicDate, highestDiastolicDate, totalReadings, chartData, consistency } = stats;
 
     return (
         <div className="bg-[var(--c-surface)] p-6 rounded-2xl shadow-lg shadow-indigo-100/50 animate-fadeInUp">
@@ -110,12 +121,17 @@ export const ReportsDashboard: React.FC<ReportsDashboardProps> = ({ readings, st
             <div className="space-y-6">
                 <div>
                     <h3 className="text-sm font-semibold text-slate-500 mb-2">{t('reports.summaryTitle')}</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                         <StatCard title={t('reports.stat.avg')} value={`${avgSystolic} / ${avgDiastolic}`} color="bg-indigo-100"
                             icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
                         />
-                         <StatCard title={t('reports.stat.high')} value={`${highSystolic} / ${highDiastolic}`} color="bg-red-100"
+                        <StatCard title={t('reports.stat.highSystolic')} value={`${highSystolic}`} color="bg-red-100"
                             icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 11l3-3m0 0l3 3m-3-3v8m0-13a9 9 0 110 18 9 9 0 010-18z" /></svg>}
+                            subtitle={highestSystolicDate ? `${t('reports.recordedOn')} ${new Date(highestSystolicDate).toLocaleDateString()}` : undefined}
+                        />
+                        <StatCard title={t('reports.stat.highDiastolic')} value={`${highDiastolic}`} color="bg-orange-100"
+                            icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 11l3-3m0 0l3 3m-3-3v8m0-13a9 9 0 110 18 9 9 0 010-18z" /></svg>}
+                            subtitle={highestDiastolicDate ? `${t('reports.recordedOn')} ${new Date(highestDiastolicDate).toLocaleDateString()}` : undefined}
                         />
                          <StatCard title={t('reports.stat.total')} value={totalReadings} color="bg-emerald-100"
                             icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>}
@@ -132,7 +148,19 @@ export const ReportsDashboard: React.FC<ReportsDashboardProps> = ({ readings, st
                                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                                     <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
                                     <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                                    <Tooltip contentStyle={{ backgroundColor: '#fff', borderRadius: '0.75rem', border: '1px solid #e2e8f0' }} />
+                                    <Tooltip 
+                                        contentStyle={{ 
+                                            backgroundColor: '#fff', 
+                                            borderRadius: '0.75rem', 
+                                            border: '1px solid #e2e8f0',
+                                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                        }}
+                                        formatter={(value: number, name: string) => [
+                                            `${value} mmHg`,
+                                            name === 'systolic' ? t('analysis.systolic') : t('analysis.diastolic')
+                                        ]}
+                                        labelFormatter={(label) => `${t('reports.timeOfDayTitle')}: ${label}`}
+                                    />
                                     <Legend wrapperStyle={{fontSize: '14px'}}/>
                                     <Bar dataKey="systolic" fill="#ef4444" name={t('analysis.systolic')} radius={[4, 4, 0, 0]} />
                                     <Bar dataKey="diastolic" fill="#6366f1" name={t('analysis.diastolic')} radius={[4, 4, 0, 0]} />

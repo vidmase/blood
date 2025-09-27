@@ -602,63 +602,169 @@ const MainApp: React.FC = () => {
         onGenerateInsights={openInsightsModal}
         isFetchingInsights={isFetchingInsights}
         insightsAvailable={!!(healthInsights && healthInsights.length > 0)}
+        readings={readings}
       />
-      <main className="flex-grow container mx-auto px-4 md:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          <div className="lg:col-span-1 flex flex-col gap-8 stagger-children">
-            {/* FileUpload is now a floating button */}
-          </div>
-
-          <div className="lg:col-span-2 flex flex-col gap-8 stagger-children" style={{'--stagger-index': 2} as React.CSSProperties}>
+      <main className="flex-grow container mx-auto px-4 md:px-8 xl:px-12 2xl:px-16 py-6 xl:py-10">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 xl:grid-cols-4 2xl:grid-cols-5 gap-6 xl:gap-8 2xl:gap-10">
             
-            <div className="bg-[var(--c-surface)] p-6 rounded-2xl shadow-lg shadow-indigo-100/50 animate-fadeInUp">
-              <div className="flex flex-col gap-4 mb-4">
-                <h2 className="text-2xl font-bold text-[var(--c-text-primary)]">{t('readings.title')}</h2>
-                
-                {/* Mobile-first button layout */}
-                <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-                  {/* View Toggle */}
-                  <div className="flex bg-slate-100 rounded-lg p-1 flex-shrink-0">
+            {/* Sidebar for Desktop */}
+            <div className="xl:col-span-1 2xl:col-span-1 flex flex-col gap-6 xl:gap-8 stagger-children">
+              {/* Quick Actions Panel */}
+              <div className="hidden xl:block bg-[var(--c-surface)] p-6 2xl:p-8 rounded-2xl shadow-lg shadow-indigo-100/50 animate-fadeInUp border border-slate-100/50">
+                <h3 className="text-lg 2xl:text-xl font-bold text-[var(--c-text-primary)] mb-6 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  {t('buttons.quickActions')}
+                </h3>
+                <div className="space-y-4">
+                  <button
+                    onClick={() => setIsAddModalOpen(true)}
+                    className="w-full flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span className="font-semibold">{t('buttons.addReading')}</span>
+                  </button>
+                  <button
+                    onClick={() => setIsCameraOpen(true)}
+                    className="w-full flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span className="font-semibold">{t('buttons.cameraScan')}</span>
+                  </button>
+                  <button
+                    onClick={openAnalysisModal}
+                    disabled={filteredReadings.length < 2 || isAnalyzing}
+                    className="w-full flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${isAnalyzing ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    <span className="font-semibold">{isAnalyzing ? t('buttons.analyzing') : t('buttons.aiAnalysis')}</span>
+                  </button>
+                  <button
+                    onClick={openInsightsModal}
+                    disabled={isFetchingInsights}
+                    className="w-full flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-purple-500 to-pink-600 text-white hover:from-purple-600 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${isFetchingInsights ? 'animate-pulse' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 2a7 7 0 00-7 7c0 2.577 1.5 4.5 3 6 1 1 2 2 2 3v2h4v-2c0-1 1-2 2-3 1.5-1.5 3-3.423 3-6a7 7 0 00-7-7z" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <span className="font-semibold">{isFetchingInsights ? t('buttons.loading') : t('buttons.healthInsights')}</span>
+                  </button>
+                </div>
+              </div>
+              
+              {/* Statistics Panel */}
+              <div className="hidden xl:block bg-[var(--c-surface)] p-6 2xl:p-8 rounded-2xl shadow-lg shadow-indigo-100/50 animate-fadeInUp border border-slate-100/50">
+                <h3 className="text-lg 2xl:text-xl font-bold text-[var(--c-text-primary)] mb-6 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  {t('buttons.statistics')}
+                </h3>
+                <div className="space-y-4">
+                  <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                    <div className="text-2xl font-bold text-blue-700">{readings.length}</div>
+                    <div className="text-sm text-blue-600 font-medium">{t('buttons.totalReadings')}</div>
+                  </div>
+                  <div className="p-4 bg-gradient-to-br from-emerald-50 to-green-50 rounded-xl border border-emerald-100">
+                    <div className="text-2xl font-bold text-emerald-700">{filteredReadings.length}</div>
+                    <div className="text-sm text-emerald-600 font-medium">{t('buttons.thisPeriod')}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="xl:col-span-3 2xl:col-span-4 flex flex-col gap-6 xl:gap-8 stagger-children" style={{'--stagger-index': 2} as React.CSSProperties}>
+            
+            <div className="bg-[var(--c-surface)] p-6 xl:p-8 2xl:p-10 rounded-2xl shadow-lg shadow-indigo-100/50 animate-fadeInUp border border-slate-100/50">
+              <div className="flex flex-col gap-4 xl:gap-6 mb-6">
+                <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+                  <h2 className="text-2xl xl:text-3xl 2xl:text-4xl font-bold text-[var(--c-text-primary)] flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 xl:h-8 xl:w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    {t('readings.title')}
+                  </h2>
+                  
+                  {/* Mobile Action Buttons - Only visible on mobile/tablet */}
+                  <div className="xl:hidden flex flex-wrap gap-2">
                     <button
-                      onClick={() => setCurrentView('table')}
-                      className={`px-2 sm:px-3 py-1 rounded-md text-sm font-medium transition-all duration-200 ${
-                        currentView === 'table' 
-                          ? 'bg-white text-slate-900 shadow-sm' 
-                          : 'text-slate-600 hover:text-slate-900'
-                      }`}
+                      onClick={openAnalysisModal}
+                      disabled={filteredReadings.length < 2 || isAnalyzing}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline sm:mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 6h18m-9 8h9" />
+                      <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 ${isAnalyzing ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                       </svg>
-                      <span className="hidden sm:inline">Table</span>
+                      <span className="font-medium">{isAnalyzing ? t('buttons.analyzing') : t('buttons.aiAnalysis')}</span>
                     </button>
                     <button
-                      onClick={() => setCurrentView('calendar')}
-                      className={`px-2 sm:px-3 py-1 rounded-md text-sm font-medium transition-all duration-200 ${
-                        currentView === 'calendar' 
-                          ? 'bg-white text-slate-900 shadow-sm' 
-                          : 'text-slate-600 hover:text-slate-900'
-                      }`}
+                      onClick={openInsightsModal}
+                      disabled={isFetchingInsights}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-600 text-white hover:from-purple-600 hover:to-pink-700 transition-all duration-300 shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline sm:mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 ${isFetchingInsights ? 'animate-pulse' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M12 2a7 7 0 00-7 7c0 2.577 1.5 4.5 3 6 1 1 2 2 2 3v2h4v-2c0-1 1-2 2-3 1.5-1.5 3-3.423 3-6a7 7 0 00-7-7z" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
-                      <span className="hidden sm:inline">Calendar</span>
+                      <span className="font-medium">{isFetchingInsights ? t('buttons.loading') : t('buttons.insights')}</span>
                     </button>
                   </div>
                   
-                  {/* Export button only - Add functionality moved to floating button */}
-                  <button
-                    onClick={() => setIsExportModalOpen(true)}
-                    disabled={filteredReadings.length === 0}
-                    className="flex items-center justify-center gap-1 sm:gap-2 bg-[var(--c-surface)] text-[var(--c-text-secondary)] font-bold py-2 px-3 sm:px-4 rounded-lg border border-[var(--c-border)] hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <span className="text-sm sm:text-base">Export PDF</span>
-                  </button>
+                </div>
+                
+                {/* Enhanced Controls Layout */}
+                <div className="flex flex-col xl:flex-row gap-4 xl:items-center xl:justify-between">
+                  {/* View Toggle */}
+                  <div className="flex bg-gradient-to-r from-slate-100 to-slate-50 rounded-xl p-1.5 flex-shrink-0 border border-slate-200">
+                    <button
+                      onClick={() => setCurrentView('table')}
+                      className={`px-4 xl:px-6 py-2.5 xl:py-3 rounded-lg xl:rounded-xl text-sm xl:text-base font-semibold transition-all duration-300 ${
+                        currentView === 'table' 
+                          ? 'bg-white text-slate-900 shadow-lg border border-slate-200' 
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                      }`}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 xl:h-5 xl:w-5 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 6h18m-9 8h9" />
+                      </svg>
+                      <span>{t('buttons.tableView')}</span>
+                    </button>
+                    <button
+                      onClick={() => setCurrentView('calendar')}
+                      className={`px-4 xl:px-6 py-2.5 xl:py-3 rounded-lg xl:rounded-xl text-sm xl:text-base font-semibold transition-all duration-300 ${
+                        currentView === 'calendar' 
+                          ? 'bg-white text-slate-900 shadow-lg border border-slate-200' 
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                      }`}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 xl:h-5 xl:w-5 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span>{t('buttons.calendarView')}</span>
+                    </button>
+                  </div>
+                  
+                  {/* Enhanced Export and Filter Controls */}
+                  <div className="flex items-center gap-3 xl:gap-4">
+                    <button
+                      onClick={() => setIsExportModalOpen(true)}
+                      disabled={filteredReadings.length === 0}
+                      className="flex items-center gap-2 xl:gap-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold py-2.5 xl:py-3 px-4 xl:px-6 rounded-lg xl:rounded-xl hover:from-emerald-600 hover:to-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 xl:h-5 xl:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span className="text-sm xl:text-base">{t('buttons.exportPDF')}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
               
@@ -688,13 +794,19 @@ const MainApp: React.FC = () => {
 
             <BloodPressureTrends readings={filteredReadings} />
 
-            <div className="bg-[var(--c-surface)] p-6 rounded-2xl shadow-lg shadow-indigo-100/50 animate-fadeInUp">
-              <h2 className="text-2xl font-bold text-[var(--c-text-primary)] mb-4">{t('chart.title')}</h2>
+            <div className="bg-[var(--c-surface)] p-6 xl:p-8 2xl:p-10 rounded-2xl shadow-lg shadow-indigo-100/50 animate-fadeInUp border border-slate-100/50">
+              <h2 className="text-2xl xl:text-3xl 2xl:text-4xl font-bold text-[var(--c-text-primary)] mb-6 xl:mb-8 flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 xl:h-8 xl:w-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                {t('chart.title')}
+              </h2>
               <AnalysisChart data={filteredReadings} totalReadings={readings.length} />
             </div>
 
             <ReportsDashboard readings={filteredReadings} startDate={startDate} endDate={endDate} />
             
+            </div>
           </div>
         </div>
       </main>
@@ -717,24 +829,26 @@ const MainApp: React.FC = () => {
       />
       {/* AI Analysis Modal */}
       {isAnalysisModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="relative bg-[var(--c-surface)] rounded-2xl shadow-xl w-full max-w-2xl p-6">
-            <button
-              onClick={() => { cancelAnalysis(); setIsAnalysisModalOpen(false); }}
-              className="absolute -top-3 -right-3 bg-white rounded-full p-1 shadow-lg hover:bg-gray-100"
-              aria-label="Close"
-            >
-              <svg className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <h3 className="text-xl font-bold mb-4">AI Analysis</h3>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="relative bg-[var(--c-surface)] rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 my-8">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold">{t('buttons.aiAnalysis')}</h3>
+              <button
+                onClick={() => { cancelAnalysis(); setIsAnalysisModalOpen(false); }}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                aria-label="Close"
+              >
+                <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
             <div className="flex justify-end mb-3">
               <button
                 onClick={isAnalyzing ? cancelAnalysis : generateAnalysis}
                 className="px-3 py-1.5 text-sm rounded-md border border-[var(--c-border)] text-[var(--c-text-secondary)] hover:bg-slate-100 transition-colors"
               >
-                {isAnalyzing ? 'Cancel' : 'Run Analysis'}
+                {isAnalyzing ? t('buttons.cancel') : t('buttons.runAnalysis')}
               </button>
             </div>
             <AnalysisSummary
@@ -749,24 +863,26 @@ const MainApp: React.FC = () => {
 
       {/* Health Insights Modal */}
       {isInsightsModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="relative bg-[var(--c-surface)] rounded-2xl shadow-xl w-full max-w-2xl p-6">
-            <button
-              onClick={() => { cancelInsights(); setIsInsightsModalOpen(false); }}
-              className="absolute -top-3 -right-3 bg-white rounded-full p-1 shadow-lg hover:bg-gray-100"
-              aria-label="Close"
-            >
-              <svg className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <h3 className="text-xl font-bold mb-4">Health Insights</h3>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="relative bg-[var(--c-surface)] rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 my-8">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold">{t('buttons.healthInsights')}</h3>
+              <button
+                onClick={() => { cancelInsights(); setIsInsightsModalOpen(false); }}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                aria-label="Close"
+              >
+                <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
             <div className="flex justify-end mb-3">
               <button
                 onClick={isFetchingInsights ? cancelInsights : generateInsights}
                 className="px-3 py-1.5 text-sm rounded-md border border-[var(--c-border)] text-[var(--c-text-secondary)] hover:bg-slate-100 transition-colors"
               >
-                {isFetchingInsights ? 'Cancel' : 'Generate Insights'}
+                {isFetchingInsights ? t('buttons.cancel') : t('buttons.generateInsights')}
               </button>
             </div>
             <HealthInsights
@@ -774,7 +890,7 @@ const MainApp: React.FC = () => {
               isLoading={isFetchingInsights}
             />
             {!healthInsights && !isFetchingInsights && (
-              <p className="text-sm text-[var(--c-text-secondary)] mt-2">Run AI Analysis first to generate insights.</p>
+              <p className="text-sm text-[var(--c-text-secondary)] mt-2">{t('modals.runAnalysisFirst')}</p>
             )}
           </div>
         </div>
@@ -831,8 +947,8 @@ const MainApp: React.FC = () => {
         isOpen={isPinModalOpen}
         onClose={handlePinClose}
         onSuccess={handlePinSuccess}
-        title="Security Verification"
-        message={pendingAction === 'edit' ? 'Enter PIN to edit record' : 'Enter PIN to delete record'}
+        title={t('modals.securityVerification')}
+        message={pendingAction === 'edit' ? t('modals.enterPinToEdit') : t('modals.enterPinToDelete')}
       />
 
       {/* Add Reading Modal */}

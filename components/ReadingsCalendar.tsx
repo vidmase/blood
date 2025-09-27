@@ -83,10 +83,16 @@ export const ReadingsCalendar: React.FC<ReadingsCalendarProps> = ({ readings, on
     const current = new Date(startDate);
     
     while (current <= endDate) {
-      const dateStr = current.toISOString().split('T')[0];
+      // Use local date string to avoid timezone issues
+      const currentYear = current.getFullYear();
+      const currentMonth = current.getMonth();
+      const currentDay = current.getDate();
+      
       const dayReadings = readings.filter(reading => {
-        const readingDate = new Date(reading.date).toISOString().split('T')[0];
-        return readingDate === dateStr;
+        const readingDate = new Date(reading.date);
+        return readingDate.getFullYear() === currentYear &&
+               readingDate.getMonth() === currentMonth &&
+               readingDate.getDate() === currentDay;
       });
       
       let averageStatus: 'optimal' | 'normal' | 'elevated' | 'high' | 'critical' = 'optimal';
@@ -134,7 +140,9 @@ export const ReadingsCalendar: React.FC<ReadingsCalendarProps> = ({ readings, on
 
   const isToday = (date: Date) => {
     const today = new Date();
-    return date.toDateString() === today.toDateString();
+    return date.getFullYear() === today.getFullYear() &&
+           date.getMonth() === today.getMonth() &&
+           date.getDate() === today.getDate();
   };
 
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];

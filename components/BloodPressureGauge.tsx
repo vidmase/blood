@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { BloodPressureReading } from '../types';
 import { useUserSettings } from '../context/UserSettingsContext';
+import { useLocalization } from '../context/LocalizationContext';
 
 interface BloodPressureGaugeProps {
   readings: BloodPressureReading[];
@@ -271,6 +272,7 @@ const Gauge: React.FC<GaugeProps> = ({
 
 export const BloodPressureGauge: React.FC<BloodPressureGaugeProps> = ({ readings }) => {
   const { targets } = useUserSettings();
+  const { t } = useLocalization();
   const [selectedReading, setSelectedReading] = useState(0);
   
   if (readings.length === 0) {
@@ -281,8 +283,8 @@ export const BloodPressureGauge: React.FC<BloodPressureGaugeProps> = ({ readings
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </svg>
         </div>
-        <h3 className="text-lg font-semibold text-slate-800 mb-2">No Gauge Data Available</h3>
-        <p className="text-slate-600">Add readings to see blood pressure gauges</p>
+        <h3 className="text-lg font-semibold text-slate-800 mb-2">{t('gauge.noDataTitle')}</h3>
+        <p className="text-slate-600">{t('gauge.noDataMessage')}</p>
       </div>
     );
   }
@@ -291,21 +293,21 @@ export const BloodPressureGauge: React.FC<BloodPressureGaugeProps> = ({ readings
   
   // Simplified 3-zone system for better readability
   const systolicZones = [
-    { min: 60, max: 120, color: '#10b981', label: 'Normal' },
-    { min: 120, max: 140, color: '#f59e0b', label: 'Elevated' },
-    { min: 140, max: 200, color: '#ef4444', label: 'High' }
+    { min: 60, max: 120, color: '#10b981', label: t('gauge.normal') },
+    { min: 120, max: 140, color: '#f59e0b', label: t('gauge.elevated') },
+    { min: 140, max: 200, color: '#ef4444', label: t('gauge.high') }
   ];
   
   const diastolicZones = [
-    { min: 40, max: 80, color: '#10b981', label: 'Normal' },
-    { min: 80, max: 90, color: '#f59e0b', label: 'Elevated' },
-    { min: 90, max: 120, color: '#ef4444', label: 'High' }
+    { min: 40, max: 80, color: '#10b981', label: t('gauge.normal') },
+    { min: 80, max: 90, color: '#f59e0b', label: t('gauge.elevated') },
+    { min: 90, max: 120, color: '#ef4444', label: t('gauge.high') }
   ];
   
   const pulseZones = [
-    { min: 40, max: 100, color: '#10b981', label: 'Normal' },
-    { min: 100, max: 120, color: '#f59e0b', label: 'Elevated' },
-    { min: 120, max: 200, color: '#ef4444', label: 'High' }
+    { min: 40, max: 100, color: '#10b981', label: t('gauge.normal') },
+    { min: 100, max: 120, color: '#f59e0b', label: t('gauge.elevated') },
+    { min: 120, max: 200, color: '#ef4444', label: t('gauge.high') }
   ];
 
   return (
@@ -320,15 +322,15 @@ export const BloodPressureGauge: React.FC<BloodPressureGaugeProps> = ({ readings
               </svg>
             </div>
             <div>
-              <h3 className="text-lg sm:text-xl font-bold text-slate-800">Blood Pressure Gauges</h3>
-              <p className="text-xs sm:text-sm text-slate-600">Medical-style gauge visualization</p>
+              <h3 className="text-lg sm:text-xl font-bold text-slate-800">{t('gauge.title')}</h3>
+              <p className="text-xs sm:text-sm text-slate-600">{t('gauge.subtitle')}</p>
             </div>
           </div>
           
           {/* Reading selector - mobile friendly */}
           {readings.length > 1 && (
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <label className="text-xs sm:text-sm font-medium text-slate-600 whitespace-nowrap">Reading:</label>
+              <label className="text-xs sm:text-sm font-medium text-slate-600 whitespace-nowrap">{t('gauge.reading')}:</label>
               <select
                 value={selectedReading}
                 onChange={(e) => setSelectedReading(Number(e.target.value))}
@@ -375,7 +377,7 @@ export const BloodPressureGauge: React.FC<BloodPressureGaugeProps> = ({ readings
               </svg>
             </button>
             <span className="text-xs sm:text-sm font-medium text-slate-600 whitespace-nowrap">
-              {selectedReading + 1} of {readings.length}
+              {selectedReading + 1} {t('gauge.of')} {readings.length}
             </span>
             <button
               onClick={() => setSelectedReading(Math.min(readings.length - 1, selectedReading + 1))}
@@ -398,8 +400,8 @@ export const BloodPressureGauge: React.FC<BloodPressureGaugeProps> = ({ readings
             value={currentReading.systolic}
             min={60}
             max={200}
-            title="Systolic Pressure"
-            unit="mmHg"
+            title={t('gauge.systolicPressure')}
+            unit={t('gauge.mmHg')}
             color="#64748b"
             zones={systolicZones}
             size={160} // Smaller for mobile
@@ -411,8 +413,8 @@ export const BloodPressureGauge: React.FC<BloodPressureGaugeProps> = ({ readings
             value={currentReading.diastolic}
             min={40}
             max={120}
-            title="Diastolic Pressure"
-            unit="mmHg"
+            title={t('gauge.diastolicPressure')}
+            unit={t('gauge.mmHg')}
             color="#64748b"
             zones={diastolicZones}
             size={160} // Smaller for mobile
@@ -425,8 +427,8 @@ export const BloodPressureGauge: React.FC<BloodPressureGaugeProps> = ({ readings
               value={currentReading.pulse}
               min={40}
               max={200}
-              title="Heart Rate"
-              unit="BPM"
+              title={t('gauge.heartRate')}
+              unit={t('gauge.bpm')}
               color="#64748b"
               zones={pulseZones}
               size={160} // Smaller for mobile
@@ -440,10 +442,10 @@ export const BloodPressureGauge: React.FC<BloodPressureGaugeProps> = ({ readings
         <div className="text-center">
           <div className="text-2xl sm:text-3xl font-bold text-slate-800 mb-1 sm:mb-2">
             {currentReading.systolic}/{currentReading.diastolic}
-            <span className="text-sm sm:text-lg font-medium text-slate-600 ml-1 sm:ml-2">mmHg</span>
+            <span className="text-sm sm:text-lg font-medium text-slate-600 ml-1 sm:ml-2">{t('gauge.mmHg')}</span>
           </div>
           <div className="text-base sm:text-lg font-semibold text-pink-600">
-            {currentReading.pulse} <span className="text-xs sm:text-sm font-medium">BPM</span>
+            {currentReading.pulse} <span className="text-xs sm:text-sm font-medium">{t('gauge.bpm')}</span>
           </div>
         </div>
       </div>

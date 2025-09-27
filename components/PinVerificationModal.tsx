@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useLocalization } from '../context/LocalizationContext';
 
 interface PinVerificationModalProps {
   isOpen: boolean;
@@ -24,9 +25,10 @@ export const PinVerificationModal: React.FC<PinVerificationModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
-  title = "Security Verification",
-  message = "Enter PIN to continue"
+  title,
+  message
 }) => {
+  const { t } = useLocalization();
   const [pin, setPin] = useState(['', '', '', '']);
   const [error, setError] = useState('');
   const [isShaking, setIsShaking] = useState(false);
@@ -63,7 +65,7 @@ export const PinVerificationModal: React.FC<PinVerificationModalProps> = ({
       if (enteredPin === CORRECT_PIN) {
         onSuccess(); // This will handle closing the modal and opening the next one
       } else {
-        setError('Incorrect PIN. Please try again.');
+        setError(t('pin.invalidPin'));
         setIsShaking(true);
         setTimeout(() => {
           setPin(['', '', '', '']);
@@ -92,7 +94,7 @@ export const PinVerificationModal: React.FC<PinVerificationModalProps> = ({
       if (pastedData === CORRECT_PIN) {
         onSuccess(); // This will handle closing the modal and opening the next one
       } else {
-        setError('Incorrect PIN. Please try again.');
+        setError(t('pin.invalidPin'));
         setIsShaking(true);
         setTimeout(() => {
           setPin(['', '', '', '']);
@@ -116,8 +118,8 @@ export const PinVerificationModal: React.FC<PinVerificationModalProps> = ({
               <LockIcon />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-slate-900">{title}</h3>
-              <p className="text-sm text-slate-600">{message}</p>
+              <h3 className="text-lg font-bold text-slate-900">{title || t('pin.title')}</h3>
+              <p className="text-sm text-slate-600">{message || t('pin.message')}</p>
             </div>
           </div>
           <button
@@ -158,8 +160,8 @@ export const PinVerificationModal: React.FC<PinVerificationModalProps> = ({
           )}
 
           <div className="text-center text-xs text-slate-500">
-            <p>Enter the 4-digit PIN to modify records</p>
-            <p className="mt-1">This helps prevent accidental changes</p>
+            <p>{t('pin.helpText')}</p>
+            <p className="mt-1">{t('pin.helpSubtext')}</p>
           </div>
         </div>
       </div>

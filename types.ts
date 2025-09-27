@@ -53,10 +53,22 @@ export interface UserTargets {
   pulse: number;
 }
 
+// Age-based normative targets for a given age group
+// This type is used by assessment utilities that calculate recommendations per age.
+export interface AgeBasedNorms {
+  systolic: number;
+  diastolic: number;
+  // Optional label like "41-45" used by assessment utilities for display/logic
+  ageRange?: string;
+}
+
 export interface AppSettings {
   theme: 'light' | 'dark';
   goals: {
     systolic: number;
     diastolic: number;
   };
+  // Whether to show age-based assessment labels alongside medical standard categories
+  // Optional to avoid breaking existing persisted settings
+  useAgeBasedAssessment?: boolean;
 }

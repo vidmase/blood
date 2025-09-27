@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { BloodPressureReading } from '../types';
 import { BloodPressureGauge } from './BloodPressureGauge';
+import { useLocalization } from '../context/LocalizationContext';
 
 interface BloodPressureTrendsProps {
   readings: BloodPressureReading[];
@@ -120,7 +121,15 @@ const TrendIndicator: React.FC<{
 };
 
 export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readings }) => {
+  const { t } = useLocalization();
   const [viewMode, setViewMode] = useState<'cards' | 'chart' | 'compact' | 'gauge'>('cards');
+  const [tooltip, setTooltip] = useState<{
+    visible: boolean;
+    x: number;
+    y: number;
+    content: string;
+    date: string;
+  }>({ visible: false, x: 0, y: 0, content: '', date: '' });
   
   if (readings.length === 0) {
     return (
@@ -130,8 +139,8 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </svg>
         </div>
-        <h3 className="text-lg font-semibold text-slate-800 mb-2">No Trend Data Available</h3>
-        <p className="text-slate-600">Add more readings to see blood pressure trends</p>
+        <h3 className="text-lg font-semibold text-slate-800 mb-2">{t('trends.noDataTitle')}</h3>
+        <p className="text-slate-600">{t('trends.noDataMessage')}</p>
       </div>
     );
   }
@@ -151,8 +160,8 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-xl font-bold text-slate-800">Blood Pressure Trends</h3>
-            <p className="text-sm text-slate-600">Recent patterns and changes</p>
+            <h3 className="text-xl font-bold text-slate-800">{t('trends.title')}</h3>
+            <p className="text-sm text-slate-600">{t('trends.recentPatterns')}</p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -161,7 +170,7 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
                 viewMode === 'cards' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
-              Cards
+              {t('trends.cards')}
             </button>
             <button
               onClick={() => setViewMode('chart')}
@@ -169,7 +178,7 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
                 viewMode === 'chart' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
-              Chart
+              {t('trends.chart')}
             </button>
             <button
               onClick={() => setViewMode('compact')}
@@ -177,7 +186,7 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
                 viewMode === 'compact' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
-              Compact
+              {t('trends.compact')}
             </button>
             <button
               onClick={() => setViewMode('gauge')}
@@ -185,7 +194,7 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
                 viewMode === 'gauge' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
-              Gauge
+              {t('trends.gauge')}
             </button>
           </div>
         </div>
@@ -202,8 +211,8 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
                   </svg>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-slate-800">Systolic</h4>
-                  <p className="text-xs text-slate-500">Upper pressure</p>
+                  <h4 className="font-semibold text-slate-800">{t('trends.systolic')}</h4>
+                  <p className="text-xs text-slate-500">{t('trends.upperPressure')}</p>
                 </div>
               </div>
               <TrendIndicator {...systolicTrend} label="Systolic" color="#dc2626" />
@@ -212,9 +221,9 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
               <Sparkline data={systolicData} color="#dc2626" height={50} />
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-slate-600">Last 10 readings</span>
+              <span className="text-slate-600">{t('trends.lastReadings', { count: 10 })}</span>
               <span className="font-semibold text-slate-800">
-                Avg: {Math.round(systolicData.reduce((a, b) => a + b, 0) / systolicData.length)}
+                {t('trends.average', { value: Math.round(systolicData.reduce((a, b) => a + b, 0) / systolicData.length) })}
               </span>
             </div>
           </div>
@@ -229,8 +238,8 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
                   </svg>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-slate-800">Diastolic</h4>
-                  <p className="text-xs text-slate-500">Lower pressure</p>
+                  <h4 className="font-semibold text-slate-800">{t('trends.diastolic')}</h4>
+                  <p className="text-xs text-slate-500">{t('trends.lowerPressure')}</p>
                 </div>
               </div>
               <TrendIndicator {...diastolicTrend} label="Diastolic" color="#2563eb" />
@@ -239,9 +248,9 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
               <Sparkline data={diastolicData} color="#2563eb" height={50} />
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-slate-600">Last 10 readings</span>
+              <span className="text-slate-600">{t('trends.lastReadings', { count: 10 })}</span>
               <span className="font-semibold text-slate-800">
-                Avg: {Math.round(diastolicData.reduce((a, b) => a + b, 0) / diastolicData.length)}
+                {t('trends.average', { value: Math.round(diastolicData.reduce((a, b) => a + b, 0) / diastolicData.length) })}
               </span>
             </div>
           </div>
@@ -256,8 +265,8 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
                   </svg>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-slate-800">Pulse</h4>
-                  <p className="text-xs text-slate-500">Heart rate</p>
+                  <h4 className="font-semibold text-slate-800">{t('trends.pulse')}</h4>
+                  <p className="text-xs text-slate-500">{t('trends.heartRate')}</p>
                 </div>
               </div>
               <TrendIndicator {...pulseTrend} label="Pulse" color="#db2777" />
@@ -266,9 +275,9 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
               <Sparkline data={pulseData} color="#db2777" height={50} />
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-slate-600">Last 10 readings</span>
+              <span className="text-slate-600">{t('trends.lastReadings', { count: 10 })}</span>
               <span className="font-semibold text-slate-800">
-                Avg: {Math.round(pulseData.reduce((a, b) => a + b, 0) / pulseData.length)} BPM
+                {t('trends.average', { value: Math.round(pulseData.reduce((a, b) => a + b, 0) / pulseData.length) })} {t('trends.bpm')}
               </span>
             </div>
           </div>
@@ -336,33 +345,33 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
         <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-slate-200/60 px-6 py-5">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h3 className="text-2xl font-bold text-slate-900">Blood Pressure Trends</h3>
-              <p className="text-sm text-slate-600 mt-1">Interactive chart showing your last {chartData.length} readings</p>
+              <h3 className="text-2xl font-bold text-slate-900">{t('trends.title')}</h3>
+              <p className="text-sm text-slate-600 mt-1">{t('trends.interactiveChart', { count: chartData.length })}</p>
             </div>
             <div className="flex items-center gap-2 bg-white/60 rounded-lg p-1">
               <button
                 onClick={() => setViewMode('cards')}
                 className="px-3 py-1.5 rounded-md text-sm font-medium text-slate-600 hover:bg-white hover:shadow-sm transition-all"
               >
-                Cards
+                {t('trends.cards')}
               </button>
               <button
                 onClick={() => setViewMode('chart')}
                 className="px-3 py-1.5 rounded-md text-sm font-medium bg-white text-indigo-700 shadow-sm"
               >
-                Chart
+                {t('trends.chart')}
               </button>
               <button
                 onClick={() => setViewMode('compact')}
                 className="px-3 py-1.5 rounded-md text-sm font-medium text-slate-600 hover:bg-white hover:shadow-sm transition-all"
               >
-                Compact
+                {t('trends.compact')}
               </button>
               <button
                 onClick={() => setViewMode('gauge')}
                 className="px-3 py-1.5 rounded-md text-sm font-medium text-slate-600 hover:bg-white hover:shadow-sm transition-all"
               >
-                Gauge
+                {t('trends.gauge')}
               </button>
             </div>
           </div>
@@ -379,17 +388,17 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
                     <div className="w-2 h-2 bg-white rounded-full"></div>
                   </div>
                   <div>
-                    <h4 className="font-bold text-red-700">Systolic Pressure</h4>
-                    <p className="text-xs text-red-600">Upper reading</p>
+                    <h4 className="font-bold text-red-700">{t('trends.systolic')}</h4>
+                    <p className="text-xs text-red-600">{t('trends.upperPressure')}</p>
                   </div>
                 </div>
                 <div className="space-y-1 text-xs">
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Current Avg:</span>
+                    <span className="text-slate-600">{t('trends.currentAvg')}:</span>
                     <span className="font-bold text-red-700">{Math.round(allSystolic.reduce((a, b) => a + b, 0) / allSystolic.length)} mmHg</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Normal:</span>
+                    <span className="text-slate-600">{t('gauge.normal')}:</span>
                     <span className="text-slate-500">&lt;120 mmHg</span>
                   </div>
                 </div>
@@ -584,7 +593,7 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
                   </linearGradient>
                 </defs>
 
-                {/* Enhanced Data Points with Glow Effect */}
+                {/* Enhanced Data Points with Tooltip */}
                 {systolicPoints.map((point, index) => (
                   <g key={`systolic-${index}`}>
                     <circle
@@ -604,15 +613,8 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
                       strokeWidth="3"
                       filter="url(#shadow)"
                       className="hover:r-7 transition-all cursor-pointer"
+                      title=""
                     />
-                    <text
-                      x={`${5 + (point.x * 0.9)}%`}
-                      y={`${point.y - 8}%`}
-                      textAnchor="middle"
-                      className="text-xs font-bold fill-red-600 opacity-0 hover:opacity-100 transition-opacity"
-                    >
-                      {point.value}
-                    </text>
                   </g>
                 ))}
 
@@ -635,15 +637,8 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
                       strokeWidth="3"
                       filter="url(#shadow)"
                       className="hover:r-7 transition-all cursor-pointer"
+                      title=""
                     />
-                    <text
-                      x={`${5 + (point.x * 0.9)}%`}
-                      y={`${point.y - 8}%`}
-                      textAnchor="middle"
-                      className="text-xs font-bold fill-blue-600 opacity-0 hover:opacity-100 transition-opacity"
-                    >
-                      {point.value}
-                    </text>
                   </g>
                 ))}
 
@@ -666,15 +661,8 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
                       strokeWidth="2"
                       filter="url(#shadow)"
                       className="hover:r-6 transition-all cursor-pointer"
+                      title=""
                     />
-                    <text
-                      x={`${5 + (point.x * 0.9)}%`}
-                      y={`${point.y - 6}%`}
-                      textAnchor="middle"
-                      className="text-xs font-bold fill-emerald-600 opacity-0 hover:opacity-100 transition-opacity"
-                    >
-                      {point.value}
-                    </text>
                   </g>
                 ))}
               </svg>
@@ -742,6 +730,7 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
               </div>
             </div>
           </div>
+
         </div>
       </div>
     );
@@ -752,27 +741,27 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
     <div className="bg-white rounded-2xl shadow-lg border border-slate-200/60 p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-xl font-bold text-slate-800">Quick Trends</h3>
-          <p className="text-sm text-slate-600">At-a-glance overview</p>
+          <h3 className="text-xl font-bold text-slate-800">{t('trends.quickTrends')}</h3>
+          <p className="text-sm text-slate-600">{t('trends.atGlanceOverview')}</p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setViewMode('cards')}
             className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors"
           >
-            Cards
+            {t('trends.cards')}
           </button>
           <button
             onClick={() => setViewMode('chart')}
             className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors"
           >
-            Chart
+            {t('trends.chart')}
           </button>
           <button
             onClick={() => setViewMode('compact')}
             className="px-3 py-1.5 rounded-lg text-sm font-medium bg-indigo-100 text-indigo-700"
           >
-            Compact
+            {t('trends.compact')}
           </button>
         </div>
       </div>
@@ -787,8 +776,8 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
               </svg>
             </div>
             <div>
-              <span className="font-semibold text-slate-800">Systolic</span>
-              <div className="text-xs text-slate-500">Upper pressure</div>
+              <span className="font-semibold text-slate-800">{t('trends.systolic')}</span>
+              <div className="text-xs text-slate-500">{t('trends.upperPressure')}</div>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -808,8 +797,8 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
               </svg>
             </div>
             <div>
-              <span className="font-semibold text-slate-800">Diastolic</span>
-              <div className="text-xs text-slate-500">Lower pressure</div>
+              <span className="font-semibold text-slate-800">{t('trends.diastolic')}</span>
+              <div className="text-xs text-slate-500">{t('trends.lowerPressure')}</div>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -829,8 +818,8 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
               </svg>
             </div>
             <div>
-              <span className="font-semibold text-slate-800">Pulse</span>
-              <div className="text-xs text-slate-500">Heart rate</div>
+              <span className="font-semibold text-slate-800">{t('trends.pulse')}</span>
+              <div className="text-xs text-slate-500">{t('trends.heartRate')}</div>
             </div>
           </div>
           <div className="flex items-center gap-4">
