@@ -604,12 +604,12 @@ const MainApp: React.FC = () => {
         insightsAvailable={!!(healthInsights && healthInsights.length > 0)}
         readings={readings}
       />
-      <main className="flex-grow container mx-auto px-4 md:px-8 xl:px-12 2xl:px-16 py-6 xl:py-10">
+      <main className="flex-grow container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12 2xl:px-16 py-4 sm:py-6 xl:py-10">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 xl:grid-cols-4 2xl:grid-cols-5 gap-6 xl:gap-8 2xl:gap-10">
+          <div className="grid grid-cols-1 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 md:gap-6 xl:gap-8 2xl:gap-10">
             
             {/* Sidebar for Desktop */}
-            <div className="xl:col-span-1 2xl:col-span-1 flex flex-col gap-6 xl:gap-8 stagger-children">
+            <div className="xl:col-span-1 2xl:col-span-1 flex flex-col gap-4 sm:gap-5 md:gap-6 xl:gap-8 stagger-children">
               {/* Quick Actions Panel */}
               <div className="hidden xl:block bg-[var(--c-surface)] p-6 2xl:p-8 rounded-2xl shadow-lg shadow-indigo-100/50 animate-fadeInUp border border-slate-100/50">
                 <h3 className="text-lg 2xl:text-xl font-bold text-[var(--c-text-primary)] mb-6 flex items-center gap-2">
@@ -682,13 +682,13 @@ const MainApp: React.FC = () => {
               </div>
             </div>
 
-            <div className="xl:col-span-3 2xl:col-span-4 flex flex-col gap-6 xl:gap-8 stagger-children" style={{'--stagger-index': 2} as React.CSSProperties}>
+            <div className="xl:col-span-3 2xl:col-span-4 flex flex-col gap-4 sm:gap-5 md:gap-6 xl:gap-8 stagger-children" style={{'--stagger-index': 2} as React.CSSProperties}>
             
-            <div className="bg-[var(--c-surface)] p-6 xl:p-8 2xl:p-10 rounded-2xl shadow-lg shadow-indigo-100/50 animate-fadeInUp border border-slate-100/50">
-              <div className="flex flex-col gap-4 xl:gap-6 mb-6">
-                <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
-                  <h2 className="text-2xl xl:text-3xl 2xl:text-4xl font-bold text-[var(--c-text-primary)] flex items-center gap-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 xl:h-8 xl:w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="bg-[var(--c-surface)] p-4 sm:p-5 md:p-6 xl:p-8 2xl:p-10 rounded-2xl shadow-lg shadow-indigo-100/50 animate-fadeInUp border border-slate-100/50">
+              <div className="flex flex-col gap-3 sm:gap-4 xl:gap-6 mb-4 sm:mb-5 md:mb-6">
+                <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3 sm:gap-4">
+                  <h2 className="text-xl sm:text-2xl xl:text-3xl 2xl:text-4xl font-bold text-[var(--c-text-primary)] flex items-center gap-2 sm:gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6 xl:h-8 xl:w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                     {t('readings.title')}
@@ -699,70 +699,72 @@ const MainApp: React.FC = () => {
                     <button
                       onClick={openAnalysisModal}
                       disabled={filteredReadings.length < 2 || isAnalyzing}
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                      className="flex-1 min-w-[140px] flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white active:scale-95 transition-all duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 ${isAnalyzing ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                       </svg>
-                      <span className="font-medium">{isAnalyzing ? t('buttons.analyzing') : t('buttons.aiAnalysis')}</span>
+                      <span className="font-semibold">{isAnalyzing ? t('buttons.analyzing') : t('buttons.aiAnalysis')}</span>
                     </button>
                     <button
                       onClick={openInsightsModal}
                       disabled={isFetchingInsights}
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-600 text-white hover:from-purple-600 hover:to-pink-700 transition-all duration-300 shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                      className="flex-1 min-w-[140px] flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-gradient-to-r from-purple-500 to-pink-600 text-white active:scale-95 transition-all duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 ${isFetchingInsights ? 'animate-pulse' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M12 2a7 7 0 00-7 7c0 2.577 1.5 4.5 3 6 1 1 2 2 2 3v2h4v-2c0-1 1-2 2-3 1.5-1.5 3-3.423 3-6a7 7 0 00-7-7z" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
-                      <span className="font-medium">{isFetchingInsights ? t('buttons.loading') : t('buttons.insights')}</span>
+                      <span className="font-semibold">{isFetchingInsights ? t('buttons.loading') : t('buttons.insights')}</span>
                     </button>
                   </div>
                   
                 </div>
                 
                 {/* Enhanced Controls Layout */}
-                <div className="flex flex-col xl:flex-row gap-4 xl:items-center xl:justify-between">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 xl:items-center xl:justify-between">
                   {/* View Toggle */}
-                  <div className="flex bg-gradient-to-r from-slate-100 to-slate-50 rounded-xl p-1.5 flex-shrink-0 border border-slate-200">
+                  <div className="flex bg-gradient-to-r from-slate-100 to-slate-50 rounded-lg sm:rounded-xl p-1 sm:p-1.5 flex-shrink-0 border border-slate-200">
                     <button
                       onClick={() => setCurrentView('table')}
-                      className={`px-4 xl:px-6 py-2.5 xl:py-3 rounded-lg xl:rounded-xl text-sm xl:text-base font-semibold transition-all duration-300 ${
+                      className={`flex-1 sm:flex-none px-3 sm:px-4 xl:px-6 py-2 sm:py-2.5 xl:py-3 rounded-md sm:rounded-lg xl:rounded-xl text-xs sm:text-sm xl:text-base font-semibold transition-all duration-200 active:scale-95 ${
                         currentView === 'table' 
-                          ? 'bg-white text-slate-900 shadow-lg border border-slate-200' 
-                          : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                          ? 'bg-white text-slate-900 shadow-md sm:shadow-lg border border-slate-200' 
+                          : 'text-slate-600 active:bg-white/50'
                       }`}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 xl:h-5 xl:w-5 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4 xl:h-5 xl:w-5 inline mr-1 sm:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 6h18m-9 8h9" />
                       </svg>
-                      <span>{t('buttons.tableView')}</span>
+                      <span className="hidden sm:inline">{t('buttons.tableView')}</span>
+                      <span className="sm:hidden">Table</span>
                     </button>
                     <button
                       onClick={() => setCurrentView('calendar')}
-                      className={`px-4 xl:px-6 py-2.5 xl:py-3 rounded-lg xl:rounded-xl text-sm xl:text-base font-semibold transition-all duration-300 ${
+                      className={`flex-1 sm:flex-none px-3 sm:px-4 xl:px-6 py-2 sm:py-2.5 xl:py-3 rounded-md sm:rounded-lg xl:rounded-xl text-xs sm:text-sm xl:text-base font-semibold transition-all duration-200 active:scale-95 ${
                         currentView === 'calendar' 
-                          ? 'bg-white text-slate-900 shadow-lg border border-slate-200' 
-                          : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                          ? 'bg-white text-slate-900 shadow-md sm:shadow-lg border border-slate-200' 
+                          : 'text-slate-600 active:bg-white/50'
                       }`}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 xl:h-5 xl:w-5 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4 xl:h-5 xl:w-5 inline mr-1 sm:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                      <span>{t('buttons.calendarView')}</span>
+                      <span className="hidden sm:inline">{t('buttons.calendarView')}</span>
+                      <span className="sm:hidden">Calendar</span>
                     </button>
                   </div>
                   
                   {/* Enhanced Export and Filter Controls */}
-                  <div className="flex items-center gap-3 xl:gap-4">
+                  <div className="flex items-center gap-2 sm:gap-3 xl:gap-4">
                     <button
                       onClick={() => setIsExportModalOpen(true)}
                       disabled={filteredReadings.length === 0}
-                      className="flex items-center gap-2 xl:gap-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold py-2.5 xl:py-3 px-4 xl:px-6 rounded-lg xl:rounded-xl hover:from-emerald-600 hover:to-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 xl:gap-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold py-2.5 sm:py-2.5 xl:py-3 px-4 xl:px-6 rounded-lg xl:rounded-xl active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-200 shadow-md sm:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-sm xl:text-base"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 xl:h-5 xl:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
-                      <span className="text-sm xl:text-base">{t('buttons.exportPDF')}</span>
+                      <span>{t('buttons.exportPDF')}</span>
                     </button>
                   </div>
                 </div>

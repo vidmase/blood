@@ -132,7 +132,7 @@ export const UserProfile: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full">
+      <div className="bg-white p-4 sm:p-6 md:p-8 rounded-2xl shadow-lg w-full max-w-full sm:max-w-md md:max-w-lg mx-auto max-h-[85vh] overflow-y-auto">
         <div className="animate-pulse">
           <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
           <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
@@ -143,15 +143,15 @@ export const UserProfile: React.FC = () => {
   }
 
   return (
-    <div className="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full">
-      <div className="text-center mb-8">
+    <div className="bg-white p-4 sm:p-6 md:p-8 rounded-2xl shadow-lg w-full max-w-full sm:max-w-md md:max-w-lg mx-auto max-h-[85vh] overflow-y-auto">
+      <div className="text-center mb-6 sm:mb-8">
         <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-indigo-100 mb-4">
           <svg className="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold text-gray-900">Profile</h2>
-        <p className="text-gray-600 mt-1">Manage your account information</p>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Profile</h2>
+        <p className="text-gray-600 mt-1 text-sm sm:text-base">Manage your account information</p>
       </div>
 
       {error && (
@@ -204,7 +204,7 @@ export const UserProfile: React.FC = () => {
             </div>
             
             {!isEditingTargets ? (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="text-center p-3 bg-red-50 rounded-lg border border-red-200">
                   <div className="text-sm font-medium text-gray-700 mb-1">Systolic</div>
                   <div className="text-xl font-bold text-red-600">{targets.systolic}</div>
@@ -218,7 +218,7 @@ export const UserProfile: React.FC = () => {
               </div>
             ) : (
               <form onSubmit={handleTargetSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="systolic" className="block text-sm font-medium text-gray-700 mb-1">
                       Systolic Target
@@ -255,11 +255,11 @@ export const UserProfile: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 md:gap-8">
                   <button
                     type="submit"
                     disabled={targetsLoading}
-                    className="flex-1 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 transition-colors"
+                    className="w-full sm:w-1/2 md:w-1/3 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50 transition-colors"
                   >
                     {targetsLoading ? 'Saving...' : 'Save Targets'}
                   </button>

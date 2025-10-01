@@ -3,7 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="theme-color" content="#6366f1" />
     <title>AI Blood Pressure Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -86,6 +90,28 @@
         background-color: var(--c-bg);
         color: var(--c-text-primary);
         transition: background-color 0.3s ease, color 0.3s ease;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+      }
+      
+      /* Improve touch targets on mobile */
+      button, a, input, select, textarea {
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+      }
+      
+      /* Better scrolling on mobile */
+      * {
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      /* Prevent text size adjustment on orientation change */
+      html {
+        -webkit-text-size-adjust: 100%;
+        -moz-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
       }
     </style>
   <script type="importmap">

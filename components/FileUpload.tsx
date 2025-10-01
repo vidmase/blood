@@ -92,8 +92,8 @@ const UploadModal: React.FC<FileUploadProps & { isOpen: boolean; onClose: () => 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
-      <div className="relative bg-white dark:bg-slate-800 p-6 md:p-8 rounded-3xl shadow-2xl w-full max-w-lg border-0 animate-scaleIn overflow-hidden">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50 animate-fadeIn">
+      <div className="relative bg-white dark:bg-slate-800 p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-lg border-0 animate-scaleIn overflow-hidden">
         {/* Background Gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/80 via-purple-50/60 to-pink-50/80 dark:from-indigo-900/20 dark:via-purple-900/20 dark:to-pink-900/20"></div>
         <div className="relative z-10">
@@ -109,12 +109,12 @@ const UploadModal: React.FC<FileUploadProps & { isOpen: boolean; onClose: () => 
           </button>
 
           {/* Header */}
-          <div className="text-center mb-6">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg animate-pulse-glow">
-              <UploadIcon className="w-8 h-8 text-white" />
+          <div className="text-center mb-4 sm:mb-6">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg animate-pulse-glow">
+              <UploadIcon className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">{t('upload.title')}</h2>
-            <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-2">{t('upload.title')}</h2>
+            <div className="flex flex-wrap items-center justify-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
               <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-medium">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
@@ -132,7 +132,7 @@ const UploadModal: React.FC<FileUploadProps & { isOpen: boolean; onClose: () => 
 
           {/* Dropzone */}
           <div 
-            className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 ease-in-out ${isDragging ? 'border-indigo-400 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 scale-[1.02] shadow-2xl shadow-indigo-200/50' : 'border-gray-300 dark:border-gray-600 bg-white/50 dark:bg-slate-700/50 hover:border-indigo-300 hover:bg-gradient-to-br hover:from-indigo-50/50 hover:to-purple-50/50'}`}
+            className={`relative border-2 border-dashed rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 text-center transition-all duration-300 ease-in-out ${isDragging ? 'border-indigo-400 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 scale-[1.02] shadow-2xl shadow-indigo-200/50' : 'border-gray-300 dark:border-gray-600 bg-white/50 dark:bg-slate-700/50 active:border-indigo-300 active:bg-gradient-to-br active:from-indigo-50/50 active:to-purple-50/50'}`}
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
             onDragOver={handleDragOver}
@@ -147,12 +147,12 @@ const UploadModal: React.FC<FileUploadProps & { isOpen: boolean; onClose: () => 
               disabled={isLoading}
               multiple
             />
-            <div className="flex flex-col items-center justify-center space-y-4 pointer-events-none">
-              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 ${isDragging ? 'bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-800 dark:to-purple-800 animate-bounce' : 'bg-gray-100 dark:bg-gray-700'}`}>
-                <UploadIcon className={`w-8 h-8 transition-all duration-300 ${isDragging ? 'scale-125 text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400'}`} />
+            <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4 pointer-events-none">
+              <div className={`w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-300 ${isDragging ? 'bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-800 dark:to-purple-800 animate-bounce' : 'bg-gray-100 dark:bg-gray-700'}`}>
+                <UploadIcon className={`w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 transition-all duration-300 ${isDragging ? 'scale-125 text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400'}`} />
               </div>
-              <div className="space-y-2">
-                <p className="text-lg font-semibold text-gray-800 dark:text-white">
+              <div className="space-y-1 sm:space-y-2">
+                <p className="text-base sm:text-lg font-semibold text-gray-800 dark:text-white">
                   <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">{t('upload.dropzone.click')}</span> 
                   <span className="text-gray-600 dark:text-gray-300"> {t('upload.dropzone.drag')}</span>
                 </p>
@@ -170,7 +170,7 @@ const UploadModal: React.FC<FileUploadProps & { isOpen: boolean; onClose: () => 
       </div>
 
           {/* Actions */}
-          <div className="flex flex-col gap-4 mt-6">
+          <div className="flex flex-col gap-3 sm:gap-4 mt-4 sm:mt-6">
             {/* Manual Add Button - Primary Action */}
             {onAddManual && (
               <button
@@ -179,35 +179,35 @@ const UploadModal: React.FC<FileUploadProps & { isOpen: boolean; onClose: () => 
                   onClose();
                 }}
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-3.5 px-6 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-300 dark:focus:ring-indigo-800 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed transform hover:scale-[1.02] hover:shadow-lg active:scale-[0.98] shadow-lg"
+                className="w-full flex items-center justify-center gap-2 sm:gap-3 bg-gradient-to-r from-indigo-500 to-purple-600 active:from-indigo-600 active:to-purple-700 text-white font-bold py-3 sm:py-3.5 px-4 sm:px-6 rounded-lg sm:rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-300 dark:focus:ring-indigo-800 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed active:scale-95 shadow-lg text-sm sm:text-base"
               >
-                <PlusIcon className="w-5 h-5" />
+                <PlusIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>Add Reading Manually</span>
               </button>
             )}
             
             {/* Divider */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
               <div className="flex-1 h-px bg-gray-200 dark:bg-gray-600"></div>
-              <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">or scan image</span>
+              <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">or scan image</span>
               <div className="flex-1 h-px bg-gray-200 dark:bg-gray-600"></div>
             </div>
             
             {/* Image Upload Options */}
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <button
                 onClick={() => document.getElementById('file-upload')?.click()}
                 disabled={isLoading}
-                className="w-full flex-1 flex items-center justify-center gap-3 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200 font-bold py-3 px-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 hover:border-indigo-300 dark:hover:border-indigo-500 hover:bg-gray-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg"
+                className="w-full flex-1 flex items-center justify-center gap-2 sm:gap-3 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200 font-bold py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl border-2 border-gray-200 dark:border-gray-600 active:border-indigo-300 dark:active:border-indigo-500 active:bg-gray-50 dark:active:bg-slate-600 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 shadow-md text-sm sm:text-base"
               >
                 {isLoading ? (
                   <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-400 border-t-transparent"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-2 border-gray-400 border-t-transparent"></div>
                     <span>{t('upload.button.processing')}</span>
                   </>
                 ) : (
                   <>
-                    <UploadIcon className="w-5 h-5" /> 
+                    <UploadIcon className="w-4 h-4 sm:w-5 sm:h-5" /> 
                     <span>{t('upload.button.default')}</span>
                   </>
                 )}
@@ -216,9 +216,9 @@ const UploadModal: React.FC<FileUploadProps & { isOpen: boolean; onClose: () => 
                 onClick={onOpenCamera}
                 disabled={isLoading}
                 aria-label={t('upload.button.camera')}
-                className="w-full sm:w-auto flex items-center justify-center gap-3 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200 font-bold py-3 px-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 hover:border-indigo-300 dark:hover:border-indigo-500 hover:bg-gray-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 sm:gap-3 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200 font-bold py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl border-2 border-gray-200 dark:border-gray-600 active:border-indigo-300 dark:active:border-indigo-500 active:bg-gray-50 dark:active:bg-slate-600 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 shadow-md text-sm sm:text-base"
               >
-                <CameraIcon className="w-5 h-5" />
+                <CameraIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>{t('upload.button.camera')}</span>
               </button>
             </div>
@@ -240,13 +240,13 @@ export const FileUpload: React.FC<FloatingUploadButtonProps> = ({ onImageUpload,
       <button
         onClick={() => setIsModalOpen(true)}
         disabled={isLoading}
-        className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 flex items-center justify-center z-40 disabled:opacity-60 disabled:cursor-not-allowed hover:scale-110 active:scale-95 animate-pulse-glow-subtle"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-full shadow-xl sm:shadow-2xl transition-all duration-300 flex items-center justify-center z-40 disabled:opacity-60 disabled:cursor-not-allowed active:scale-90 animate-pulse-glow-subtle"
         aria-label="Add Reading"
       >
         {isLoading ? (
-          <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
+          <div className="animate-spin rounded-full h-5 w-5 sm:h-6 sm:w-6 border-2 border-white border-t-transparent"></div>
         ) : (
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-7 sm:w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
           </svg>
         )}

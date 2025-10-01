@@ -156,42 +156,42 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
   // Cards View
   if (viewMode === 'cards') {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-5 md:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div>
-            <h3 className="text-xl font-bold text-slate-800">{t('trends.title')}</h3>
-            <p className="text-sm text-slate-600">{t('trends.recentPatterns')}</p>
+            <h3 className="text-lg sm:text-xl font-bold text-slate-800">{t('trends.title')}</h3>
+            <p className="text-xs sm:text-sm text-slate-600">{t('trends.recentPatterns')}</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1">
             <button
               onClick={() => setViewMode('cards')}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                viewMode === 'cards' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all active:scale-95 whitespace-nowrap ${
+                viewMode === 'cards' ? 'bg-indigo-100 text-indigo-700 shadow-sm' : 'text-slate-600 active:bg-slate-100'
               }`}
             >
               {t('trends.cards')}
             </button>
             <button
               onClick={() => setViewMode('chart')}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                viewMode === 'chart' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all active:scale-95 whitespace-nowrap ${
+                viewMode === 'chart' ? 'bg-indigo-100 text-indigo-700 shadow-sm' : 'text-slate-600 active:bg-slate-100'
               }`}
             >
               {t('trends.chart')}
             </button>
             <button
               onClick={() => setViewMode('compact')}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                viewMode === 'compact' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all active:scale-95 whitespace-nowrap ${
+                viewMode === 'compact' ? 'bg-indigo-100 text-indigo-700 shadow-sm' : 'text-slate-600 active:bg-slate-100'
               }`}
             >
               {t('trends.compact')}
             </button>
             <button
               onClick={() => setViewMode('gauge')}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                viewMode === 'gauge' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all active:scale-95 whitespace-nowrap ${
+                viewMode === 'gauge' ? 'bg-indigo-100 text-indigo-700 shadow-sm' : 'text-slate-600 active:bg-slate-100'
               }`}
             >
               {t('trends.gauge')}
@@ -200,27 +200,27 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
         </div>
 
         {/* Trend Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
           {/* Systolic Card */}
-          <div className="bg-white rounded-2xl shadow-lg border border-slate-200/60 p-6 hover:shadow-xl transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-red-100 to-red-200 rounded-xl flex items-center justify-center">
-                  <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="bg-white rounded-2xl shadow-md sm:shadow-lg border border-slate-200/60 p-4 sm:p-5 md:p-6 active:shadow-xl transition-shadow">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-red-100 to-red-200 rounded-lg sm:rounded-xl flex items-center justify-center">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                   </svg>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-slate-800">{t('trends.systolic')}</h4>
+                  <h4 className="text-sm sm:text-base font-semibold text-slate-800">{t('trends.systolic')}</h4>
                   <p className="text-xs text-slate-500">{t('trends.upperPressure')}</p>
                 </div>
               </div>
               <TrendIndicator {...systolicTrend} label="Systolic" color="#dc2626" />
             </div>
-            <div className="mb-4">
+            <div className="mb-3 sm:mb-4">
               <Sparkline data={systolicData} color="#dc2626" height={50} />
             </div>
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between text-xs sm:text-sm">
               <span className="text-slate-600">{t('trends.lastReadings', { count: 10 })}</span>
               <span className="font-semibold text-slate-800">
                 {t('trends.average', { value: Math.round(systolicData.reduce((a, b) => a + b, 0) / systolicData.length) })}
@@ -229,25 +229,25 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
           </div>
 
           {/* Diastolic Card */}
-          <div className="bg-white rounded-2xl shadow-lg border border-slate-200/60 p-6 hover:shadow-xl transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="bg-white rounded-2xl shadow-md sm:shadow-lg border border-slate-200/60 p-4 sm:p-5 md:p-6 active:shadow-xl transition-shadow">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg sm:rounded-xl flex items-center justify-center">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
                   </svg>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-slate-800">{t('trends.diastolic')}</h4>
+                  <h4 className="text-sm sm:text-base font-semibold text-slate-800">{t('trends.diastolic')}</h4>
                   <p className="text-xs text-slate-500">{t('trends.lowerPressure')}</p>
                 </div>
               </div>
               <TrendIndicator {...diastolicTrend} label="Diastolic" color="#2563eb" />
             </div>
-            <div className="mb-4">
+            <div className="mb-3 sm:mb-4">
               <Sparkline data={diastolicData} color="#2563eb" height={50} />
             </div>
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between text-xs sm:text-sm">
               <span className="text-slate-600">{t('trends.lastReadings', { count: 10 })}</span>
               <span className="font-semibold text-slate-800">
                 {t('trends.average', { value: Math.round(diastolicData.reduce((a, b) => a + b, 0) / diastolicData.length) })}
@@ -256,25 +256,25 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
           </div>
 
           {/* Pulse Card */}
-          <div className="bg-white rounded-2xl shadow-lg border border-slate-200/60 p-6 hover:shadow-xl transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-pink-100 to-pink-200 rounded-xl flex items-center justify-center">
-                  <svg className="w-5 h-5 text-pink-600" fill="currentColor" viewBox="0 0 24 24">
+          <div className="bg-white rounded-2xl shadow-md sm:shadow-lg border border-slate-200/60 p-4 sm:p-5 md:p-6 active:shadow-xl transition-shadow">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-pink-100 to-pink-200 rounded-lg sm:rounded-xl flex items-center justify-center">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-pink-600" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                   </svg>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-slate-800">{t('trends.pulse')}</h4>
+                  <h4 className="text-sm sm:text-base font-semibold text-slate-800">{t('trends.pulse')}</h4>
                   <p className="text-xs text-slate-500">{t('trends.heartRate')}</p>
                 </div>
               </div>
               <TrendIndicator {...pulseTrend} label="Pulse" color="#db2777" />
             </div>
-            <div className="mb-4">
+            <div className="mb-3 sm:mb-4">
               <Sparkline data={pulseData} color="#db2777" height={50} />
             </div>
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between text-xs sm:text-sm">
               <span className="text-slate-600">{t('trends.lastReadings', { count: 10 })}</span>
               <span className="font-semibold text-slate-800">
                 {t('trends.average', { value: Math.round(pulseData.reduce((a, b) => a + b, 0) / pulseData.length) })} {t('trends.bpm')}
@@ -379,8 +379,8 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
 
         <div className="p-8">
           {/* Modern Legend with Health Zones */}
-          <div className="mb-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+          <div className="mb-6 sm:mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
               {/* Systolic Legend Card */}
               <div className="bg-gradient-to-br from-red-50 to-red-100/50 rounded-2xl p-4 border border-red-200/60">
                 <div className="flex items-center gap-3 mb-3">
@@ -453,14 +453,14 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
           </div>
 
           {/* Modern Professional Chart */}
-          <div className="relative bg-gradient-to-br from-white to-slate-50/30 rounded-2xl p-8 shadow-xl border border-slate-200/60">
+          <div className="relative bg-gradient-to-br from-white to-slate-50/30 rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg sm:shadow-xl border border-slate-200/60">
             {/* Chart Title */}
-            <div className="mb-6 text-center">
-              <h4 className="text-lg font-bold text-slate-800 mb-2">Blood Pressure Trend Analysis</h4>
-              <p className="text-sm text-slate-600">Last {chartData.length} readings • {new Date(chartData[0]?.date).toLocaleDateString()} - {new Date(chartData[chartData.length - 1]?.date).toLocaleDateString()}</p>
+            <div className="mb-4 sm:mb-6 text-center">
+              <h4 className="text-base sm:text-lg font-bold text-slate-800 mb-1 sm:mb-2">Blood Pressure Trend Analysis</h4>
+              <p className="text-xs sm:text-sm text-slate-600">Last {chartData.length} readings • {new Date(chartData[0]?.date).toLocaleDateString()} - {new Date(chartData[chartData.length - 1]?.date).toLocaleDateString()}</p>
             </div>
 
-            <div className="relative h-96">
+            <div className="relative h-64 sm:h-80 md:h-96">
               <svg width="100%" height="100%" className="overflow-visible" style={{ background: 'linear-gradient(135deg, #fafafa 0%, #f8fafc 100%)' }}>
                 {/* Enhanced Background Grid */}
                 <defs>
@@ -703,7 +703,7 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
             </div>
 
             {/* Health Zone Indicators */}
-            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="mt-4 sm:mt-6 md:mt-8 grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
               <div className="bg-gradient-to-r from-emerald-50 to-emerald-100/50 rounded-xl p-3 border border-emerald-200/60">
                 <div className="text-center">
                   <div className="text-xs font-semibold text-emerald-700 mb-1">Optimal BP</div>

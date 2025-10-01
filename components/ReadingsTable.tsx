@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import type { BloodPressureReading } from '../types';
 import { useLocalization } from '../context/LocalizationContext';
+import { useUserSettings } from '../context/UserSettingsContext';
 
 interface ReadingsTableProps {
   readings: BloodPressureReading[];
@@ -65,6 +66,79 @@ const TrendDownIcon: React.FC<{ className?: string }> = ({ className = "h-3 w-3"
     </svg>
 );
 
+// Blood Pressure Assessment based on AHA/ESH Guidelines
+const getBloodPressureAssessment = (systolic: number, diastolic: number): {
+  category: string;
+  level: 'low' | 'normal' | 'elevated' | 'stage1' | 'stage2' | 'crisis';
+  color: string;
+  bgColor: string;
+  description: string;
+} => {
+  // Hypertensive Crisis (Critical)
+  if (systolic >= 180 || diastolic >= 120) {
+    return {
+      category: 'Hypertensive Crisis',
+      level: 'crisis',
+      color: 'text-red-900',
+      bgColor: 'bg-red-100',
+      description: 'Emergency - Seek immediate medical attention'
+    };
+  }
+  
+  // Stage 2 Hypertension
+  if (systolic >= 140 || diastolic >= 90) {
+    return {
+      category: 'Stage 2 Hypertension',
+      level: 'stage2',
+      color: 'text-red-700',
+      bgColor: 'bg-red-50',
+      description: 'Requires medication and lifestyle changes'
+    };
+  }
+  
+  // Stage 1 Hypertension
+  if (systolic >= 130 || diastolic >= 80) {
+    return {
+      category: 'Stage 1 Hypertension',
+      level: 'stage1',
+      color: 'text-orange-700',
+      bgColor: 'bg-orange-50',
+      description: 'Lifestyle changes recommended, may need medication'
+    };
+  }
+  
+  // Elevated Blood Pressure
+  if (systolic >= 120 && systolic <= 129 && diastolic < 80) {
+    return {
+      category: 'Elevated',
+      level: 'elevated',
+      color: 'text-amber-700',
+      bgColor: 'bg-amber-50',
+      description: 'Lifestyle modifications recommended'
+    };
+  }
+  
+  // Low Blood Pressure (Hypotension)
+  if (systolic < 90 || diastolic < 60) {
+    return {
+      category: 'Low',
+      level: 'low',
+      color: 'text-blue-700',
+      bgColor: 'bg-blue-50',
+      description: 'Monitor for symptoms'
+    };
+  }
+  
+  // Normal Blood Pressure
+  return {
+    category: 'Normal',
+    level: 'normal',
+    color: 'text-emerald-700',
+    bgColor: 'bg-emerald-50',
+    description: 'Optimal blood pressure range'
+  };
+};
+
 const getStatusIndicator = (value: number, type: 'systolic' | 'diastolic'): { 
   className: string, 
   indicator: React.ReactNode, 
@@ -78,7 +152,12 @@ const getStatusIndicator = (value: number, type: 'systolic' | 'diastolic'): {
   let bgColor = '';
 
   if (type === 'systolic') {
-    if (value >= 140) {
+    if (value >= 180) {
+      indicator = <TrendUpIcon className="h-3 w-3" />;
+      textColor = 'text-red-900';
+      bgColor = 'bg-red-100';
+      level = 'critical';
+    } else if (value >= 140) {
       indicator = <TrendUpIcon className="h-3 w-3" />;
       textColor = 'text-red-700';
       bgColor = 'bg-red-50';
@@ -88,7 +167,7 @@ const getStatusIndicator = (value: number, type: 'systolic' | 'diastolic'): {
       textColor = 'text-orange-700';
       bgColor = 'bg-orange-50';
       level = 'high';
-    } else if (value > 120) {
+    } else if (value >= 120) {
       indicator = <TrendUpIcon className="h-3 w-3" />;
       textColor = 'text-amber-700';
       bgColor = 'bg-amber-50';
@@ -104,30 +183,30 @@ const getStatusIndicator = (value: number, type: 'systolic' | 'diastolic'): {
       level = 'optimal';
     }
   } else { // diastolic
-    if (value >= 90) {
+    if (value >= 120) {
+      indicator = <TrendUpIcon className="h-3 w-3" />;
+      textColor = 'text-red-900';
+      bgColor = 'bg-red-100';
+      level = 'critical';
+    } else if (value >= 90) {
       indicator = <TrendUpIcon className="h-3 w-3" />;
       textColor = 'text-red-700';
       bgColor = 'bg-red-50';
       level = 'critical';
-    } else if (value >= 85) {
+    } else if (value >= 80) {
       indicator = <TrendUpIcon className="h-3 w-3" />;
       textColor = 'text-orange-700';
       bgColor = 'bg-orange-50';
       level = 'high';
-    } else if (value > 80) {
-      indicator = <TrendUpIcon className="h-3 w-3" />;
-      textColor = 'text-amber-700';
-      bgColor = 'bg-amber-50';
-      level = 'elevated';
+    } else if (value >= 60 && value < 80) {
+      textColor = 'text-emerald-700';
+      bgColor = 'bg-emerald-50';
+      level = 'optimal';
     } else if (value < 60) {
       indicator = <TrendDownIcon className="h-3 w-3" />;
       textColor = 'text-blue-700';
       bgColor = 'bg-blue-50';
       level = 'normal';
-    } else {
-      textColor = 'text-emerald-700';
-      bgColor = 'bg-emerald-50';
-      level = 'optimal';
     }
   }
 
@@ -143,6 +222,7 @@ const getStatusIndicator = (value: number, type: 'systolic' | 'diastolic'): {
 
 export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalReadings, onEditReading, onDeleteReading }) => {
   const { t, language } = useLocalization();
+  const { targets } = useUserSettings();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   
@@ -226,6 +306,12 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
                     <div className="w-3 h-3 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"></div>
                     <span className="text-xs font-medium text-slate-600">{t('table.latestData')}</span>
                   </div>
+                  {/* Current Targets Chip */}
+                  <div className="hidden sm:flex items-center">
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold text-indigo-700 bg-indigo-100 border border-indigo-200">
+                      {t('table.currentTargets', { sys: targets.systolic, dia: targets.diastolic })}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -247,43 +333,40 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {paginatedReadings.map((reading, index) => {
+                    const assessment = getBloodPressureAssessment(reading.systolic, reading.diastolic);
                     const systolicStatus = getStatusIndicator(reading.systolic, 'systolic');
                     const diastolicStatus = getStatusIndicator(reading.diastolic, 'diastolic');
-                    const overallLevel = systolicStatus.level === 'critical' || diastolicStatus.level === 'critical' 
-                      ? 'critical' 
-                      : systolicStatus.level === 'high' || diastolicStatus.level === 'high' 
-                      ? 'high' 
-                      : systolicStatus.level === 'elevated' || diastolicStatus.level === 'elevated' 
-                      ? 'elevated' 
-                      : 'normal';
                     
-                    const getStatusText = (level: string) => {
-                      switch(level) {
-                        case 'critical': return 'Critical';
-                        case 'high': return 'High';
-                        case 'elevated': return 'Elevated';
-                        case 'normal': return 'Low';
-                        default: return 'Optimal';
-                      }
-                    };
-
                     const getStatusGradient = (level: string) => {
                       switch(level) {
-                        case 'critical': return 'from-red-500 to-red-600';
-                        case 'high': return 'from-orange-500 to-orange-600';
+                        case 'crisis': return 'from-red-700 to-red-800';
+                        case 'stage2': return 'from-red-500 to-red-600';
+                        case 'stage1': return 'from-orange-500 to-orange-600';
                         case 'elevated': return 'from-amber-500 to-amber-600';
-                        case 'normal': return 'from-blue-500 to-blue-600';
+                        case 'low': return 'from-blue-500 to-blue-600';
                         default: return 'from-emerald-500 to-emerald-600';
                       }
                     };
 
                     const getRowBg = (level: string) => {
                       switch(level) {
-                        case 'critical': return 'hover:bg-gradient-to-r hover:from-red-50/50 hover:to-red-50/30';
-                        case 'high': return 'hover:bg-gradient-to-r hover:from-orange-50/50 hover:to-orange-50/30';
+                        case 'crisis': return 'hover:bg-gradient-to-r hover:from-red-100/50 hover:to-red-50/30';
+                        case 'stage2': return 'hover:bg-gradient-to-r hover:from-red-50/50 hover:to-red-50/30';
+                        case 'stage1': return 'hover:bg-gradient-to-r hover:from-orange-50/50 hover:to-orange-50/30';
                         case 'elevated': return 'hover:bg-gradient-to-r hover:from-amber-50/50 hover:to-amber-50/30';
-                        case 'normal': return 'hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-blue-50/30';
+                        case 'low': return 'hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-blue-50/30';
                         default: return 'hover:bg-gradient-to-r hover:from-emerald-50/50 hover:to-emerald-50/30';
+                      }
+                    };
+                    
+                    const getBorderColor = (level: string) => {
+                      switch(level) {
+                        case 'crisis': return 'border-red-700';
+                        case 'stage2': return 'border-red-500';
+                        case 'stage1': return 'border-orange-500';
+                        case 'elevated': return 'border-amber-500';
+                        case 'low': return 'border-blue-500';
+                        default: return 'border-emerald-500';
                       }
                     };
                     
@@ -294,8 +377,9 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
                     const hh = String(d.getHours()).padStart(2,'0');
                     const min = String(d.getMinutes()).padStart(2,'0');
 
+                    const isOverTarget = reading.systolic > targets.systolic || reading.diastolic > targets.diastolic;
                     return (
-                      <tr key={reading.id} className={`transition-all duration-300 border-l-4 border-transparent hover:border-l-4 hover:border-${overallLevel === 'critical' ? 'red' : overallLevel === 'high' ? 'orange' : overallLevel === 'elevated' ? 'amber' : overallLevel === 'normal' ? 'blue' : 'emerald'}-400 ${getRowBg(overallLevel)} hover:shadow-sm`}>
+                      <tr key={reading.id} className={`transition-all duration-300 border-l-4 border-transparent hover:border-l-4 hover:${getBorderColor(assessment.level)} ${getRowBg(assessment.level)} hover:shadow-sm`}>
                         <td className="px-2 lg:px-4 py-3">
                           <div className="leading-tight">
                             <div className="text-xs lg:text-sm font-semibold text-slate-900 whitespace-nowrap">{`${dd}-${mm}-${yyyy}`}</div>
@@ -310,6 +394,9 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
                               <span className="text-base lg:text-xl font-bold text-slate-700">{reading.diastolic}</span>
                             </div>
                             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">mmHg</div>
+                            <div className={`mt-1 text-[10px] lg:text-xs font-medium ${isOverTarget ? 'text-red-600' : 'text-emerald-600'}`}>
+                              <span className="opacity-70">{t('table.targetLabel')}</span> {targets.systolic}/{targets.diastolic} mmHg
+                            </div>
                           </div>
                         </td>
                         <td className="px-2 lg:px-4 py-3 text-center">
@@ -319,9 +406,14 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
                           </div>
                         </td>
                         <td className="px-2 lg:px-4 py-3 text-center">
-                          <span className={`inline-flex items-center px-2 lg:px-3 py-1 lg:py-1.5 rounded-full text-xs lg:text-sm font-bold text-white bg-gradient-to-r ${getStatusGradient(overallLevel)} shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105`}>
-                            {getStatusText(overallLevel)}
-                          </span>
+                          <div className="flex flex-col items-center gap-1">
+                            <span className={`inline-flex items-center px-2 lg:px-3 py-1 lg:py-1.5 rounded-full text-xs lg:text-sm font-bold text-white bg-gradient-to-r ${getStatusGradient(assessment.level)} shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105`} title={assessment.description}>
+                              {assessment.category}
+                            </span>
+                            {assessment.level === 'crisis' && (
+                              <span className="text-xs text-red-700 font-semibold animate-pulse">⚠️ Emergency</span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-2 lg:px-4 py-3">
                           {reading.notes ? (
@@ -365,43 +457,33 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
 
             {/* Mobile-Optimized Cards */}
             <div className="md:hidden space-y-4 p-4">
+              {/* Current Targets Chip (Mobile) */}
+              <div className="flex justify-end">
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold text-indigo-700 bg-indigo-100 border border-indigo-200">
+                  {t('table.currentTargets', { sys: targets.systolic, dia: targets.diastolic })}
+                </span>
+              </div>
               {paginatedReadings.map((reading, index) => {
-                const systolicStatus = getStatusIndicator(reading.systolic, 'systolic');
-                const diastolicStatus = getStatusIndicator(reading.diastolic, 'diastolic');
-                const overallLevel = systolicStatus.level === 'critical' || diastolicStatus.level === 'critical' 
-                  ? 'critical' 
-                  : systolicStatus.level === 'high' || diastolicStatus.level === 'high' 
-                  ? 'high' 
-                  : systolicStatus.level === 'elevated' || diastolicStatus.level === 'elevated' 
-                  ? 'elevated' 
-                  : 'normal';
-
-                const getStatusText = (level: string) => {
-                  switch(level) {
-                    case 'critical': return 'Critical';
-                    case 'high': return 'High';
-                    case 'elevated': return 'Elevated';
-                    case 'normal': return 'Low';
-                    default: return 'Optimal';
-                  }
-                };
+                const assessment = getBloodPressureAssessment(reading.systolic, reading.diastolic);
 
                 const getStatusGradient = (level: string) => {
                   switch(level) {
-                    case 'critical': return 'from-red-500 to-red-600';
-                    case 'high': return 'from-orange-500 to-orange-600';
+                    case 'crisis': return 'from-red-700 to-red-800';
+                    case 'stage2': return 'from-red-500 to-red-600';
+                    case 'stage1': return 'from-orange-500 to-orange-600';
                     case 'elevated': return 'from-amber-500 to-amber-600';
-                    case 'normal': return 'from-blue-500 to-blue-600';
+                    case 'low': return 'from-blue-500 to-blue-600';
                     default: return 'from-emerald-500 to-emerald-600';
                   }
                 };
 
                 const getStatusBg = (level: string) => {
                   switch(level) {
-                    case 'critical': return 'bg-gradient-to-br from-red-50 to-red-100/50';
-                    case 'high': return 'bg-gradient-to-br from-orange-50 to-orange-100/50';
+                    case 'crisis': return 'bg-gradient-to-br from-red-100 to-red-200/50';
+                    case 'stage2': return 'bg-gradient-to-br from-red-50 to-red-100/50';
+                    case 'stage1': return 'bg-gradient-to-br from-orange-50 to-orange-100/50';
                     case 'elevated': return 'bg-gradient-to-br from-amber-50 to-amber-100/50';
-                    case 'normal': return 'bg-gradient-to-br from-blue-50 to-blue-100/50';
+                    case 'low': return 'bg-gradient-to-br from-blue-50 to-blue-100/50';
                     default: return 'bg-gradient-to-br from-emerald-50 to-emerald-100/50';
                   }
                 };
@@ -413,10 +495,11 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
                 const mhh = String(md.getHours()).padStart(2,'0');
                 const mmin = String(md.getMinutes()).padStart(2,'0');
 
+                const isOverTarget = reading.systolic > targets.systolic || reading.diastolic > targets.diastolic;
                 return (
-                  <div key={reading.id} className={`relative rounded-2xl shadow-lg border border-slate-200/60 overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:-translate-y-2 ${getStatusBg(overallLevel)} animate-fadeInUp`}>
+                  <div key={reading.id} className={`relative rounded-2xl shadow-lg border border-slate-200/60 overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:-translate-y-2 ${getStatusBg(assessment.level)} animate-fadeInUp`}>
                     {/* Status Indicator Bar */}
-                    <div className={`h-2 bg-gradient-to-r ${getStatusGradient(overallLevel)} shadow-sm`}></div>
+                    <div className={`h-2 bg-gradient-to-r ${getStatusGradient(assessment.level)} shadow-sm`}></div>
                     
                     <div className="p-5">
                       {/* Header with Date and Actions */}
@@ -426,10 +509,13 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
                           <div className="text-xs text-slate-600 font-semibold mt-0.5 whitespace-nowrap">{`${mhh}:${mmin}`}</div>
                         </div>
                         
-                        <div className="flex items-center gap-3">
-                          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getStatusGradient(overallLevel)} shadow-sm`}>
-                            {getStatusText(overallLevel)}
+                        <div className="flex flex-col items-end gap-2">
+                          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getStatusGradient(assessment.level)} shadow-sm`} title={assessment.description}>
+                            {assessment.category}
                           </span>
+                          {assessment.level === 'crisis' && (
+                            <span className="text-xs text-red-700 font-semibold animate-pulse">⚠️ Emergency</span>
+                          )}
                           
                           {(onEditReading || onDeleteReading) && (
                             <div className="flex items-center gap-1">
@@ -456,7 +542,8 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
                         </div>
                       </div>
                       
-                      {/* Main Blood Pressure Display */}
+                      {/* Main Blood Pressure Display */
+                      }
                       <div className="bg-white/70 rounded-xl p-4 mb-4 backdrop-blur-sm">
                         <div className="flex items-center justify-center">
                           <div className="text-center">
@@ -466,6 +553,9 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
                               <span className="text-3xl font-bold text-slate-700">{reading.diastolic}</span>
                             </div>
                             <div className="text-sm font-semibold text-slate-500 uppercase tracking-wide">mmHg</div>
+                            <div className={`mt-1 text-xs font-semibold ${isOverTarget ? 'text-red-600' : 'text-emerald-600'}`}>
+                              <span className="opacity-70">{t('table.targetLabel')}</span> {targets.systolic}/{targets.diastolic} mmHg
+                            </div>
                           </div>
                         </div>
                       </div>

@@ -18,16 +18,16 @@ const ChartIcon: React.FC<{className?: string}> = ({className}) => (
 );
 
 const StatCard: React.FC<{title: string; value: string | number; icon: React.ReactNode; color: string; subtitle?: string}> = ({title, value, icon, color, subtitle}) => (
-    <div className="bg-white p-4 rounded-xl border border-slate-200/80">
-        <div className="flex items-center gap-4">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${color}`}>
+    <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200/80">
+        <div className="flex items-center gap-3 sm:gap-4">
+            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center ${color}`}>
                 {icon}
             </div>
-            <div className="flex-1">
-                <p className="text-sm font-medium text-slate-500">{title}</p>
-                <p className="text-2xl font-bold text-slate-800">{value}</p>
+            <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-slate-500 truncate">{title}</p>
+                <p className="text-lg sm:text-xl md:text-2xl font-bold text-slate-800">{value}</p>
                 {subtitle && (
-                    <p className="text-xs text-slate-400 mt-1">{subtitle}</p>
+                    <p className="text-xs text-slate-400 mt-0.5 sm:mt-1 truncate">{subtitle}</p>
                 )}
             </div>
         </div>
@@ -112,16 +112,16 @@ export const ReportsDashboard: React.FC<ReportsDashboardProps> = ({ readings, st
     const { avgSystolic, avgDiastolic, highSystolic, highDiastolic, highestSystolicDate, highestDiastolicDate, totalReadings, chartData, consistency } = stats;
 
     return (
-        <div className="bg-[var(--c-surface)] p-6 rounded-2xl shadow-lg shadow-indigo-100/50 animate-fadeInUp">
-            <div className="flex items-center space-x-2 mb-4">
-                <ChartIcon className="w-7 h-7 text-transparent bg-clip-text bg-gradient-to-r from-[var(--c-primary)] to-[var(--c-secondary)]" />
-                <h2 className="text-2xl font-bold text-[var(--c-text-primary)]">{t('reports.title')}</h2>
+        <div className="bg-[var(--c-surface)] p-4 sm:p-5 md:p-6 rounded-2xl shadow-lg shadow-indigo-100/50 animate-fadeInUp">
+            <div className="flex items-center space-x-2 mb-4 sm:mb-5 md:mb-6">
+                <ChartIcon className="w-5 w-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-transparent bg-clip-text bg-gradient-to-r from-[var(--c-primary)] to-[var(--c-secondary)]" />
+                <h2 className="text-xl sm:text-2xl font-bold text-[var(--c-text-primary)]">{t('reports.title')}</h2>
             </div>
             
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-5 md:space-y-6">
                 <div>
-                    <h3 className="text-sm font-semibold text-slate-500 mb-2">{t('reports.summaryTitle')}</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <h3 className="text-xs sm:text-sm font-semibold text-slate-500 mb-2 sm:mb-3">{t('reports.summaryTitle')}</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
                         <StatCard title={t('reports.stat.avg')} value={`${avgSystolic} / ${avgDiastolic}`} color="bg-indigo-100"
                             icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
                         />
@@ -141,8 +141,8 @@ export const ReportsDashboard: React.FC<ReportsDashboardProps> = ({ readings, st
 
                 {chartData.length > 0 && (
                     <div>
-                        <h3 className="text-sm font-semibold text-slate-500 mb-2">{t('reports.timeOfDayTitle')}</h3>
-                        <div style={{ width: '100%', height: 250 }}>
+                        <h3 className="text-xs sm:text-sm font-semibold text-slate-500 mb-2 sm:mb-3">{t('reports.timeOfDayTitle')}</h3>
+                        <div style={{ width: '100%', height: 200 }} className="sm:h-[250px]">
                             <ResponsiveContainer>
                                 <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -171,14 +171,14 @@ export const ReportsDashboard: React.FC<ReportsDashboardProps> = ({ readings, st
                 )}
                 
                 <div>
-                    <h3 className="text-sm font-semibold text-slate-500 mb-2">{t('reports.consistencyTitle')}</h3>
-                    <div className="flex items-center gap-4">
-                        <div className="w-full bg-slate-200 rounded-full h-2.5">
-                            <div className="bg-gradient-to-r from-emerald-400 to-cyan-500 h-2.5 rounded-full" style={{ width: `${consistency}%` }}></div>
+                    <h3 className="text-xs sm:text-sm font-semibold text-slate-500 mb-2 sm:mb-3">{t('reports.consistencyTitle')}</h3>
+                    <div className="flex items-center gap-3 sm:gap-4">
+                        <div className="w-full bg-slate-200 rounded-full h-2 sm:h-2.5">
+                            <div className="bg-gradient-to-r from-emerald-400 to-cyan-500 h-2 sm:h-2.5 rounded-full transition-all duration-300" style={{ width: `${consistency}%` }}></div>
                         </div>
-                        <span className="font-bold text-emerald-600">{consistency}%</span>
+                        <span className="text-sm sm:text-base font-bold text-emerald-600 min-w-[45px]">{consistency}%</span>
                     </div>
-                    <p className="text-xs text-slate-500 mt-1">{t('reports.consistencyDesc')}</p>
+                    <p className="text-xs text-slate-500 mt-1 sm:mt-2">{t('reports.consistencyDesc')}</p>
                 </div>
             </div>
         </div>
