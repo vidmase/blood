@@ -74,41 +74,45 @@ const getBloodPressureAssessment = (systolic: number, diastolic: number): {
   bgColor: string;
   description: string;
 } => {
-  // Hypertensive Crisis (Critical)
+  // Hypertensive Crisis (Critical) - 180+ OR 120+
+  // AND/OR logic: Either systolic ≥180 OR diastolic ≥120 triggers crisis
   if (systolic >= 180 || diastolic >= 120) {
     return {
       category: 'Hypertensive Crisis',
       level: 'crisis',
       color: 'text-red-900',
       bgColor: 'bg-red-100',
-      description: 'Emergency - Seek immediate medical attention'
+      description: 'Medical emergency - Immediate medical attention required'
     };
   }
   
-  // Stage 2 Hypertension
-  if (systolic >= 140 || diastolic >= 90) {
+  // Stage 2 Hypertension - 140-179 OR 90-109
+  // High cardiovascular risk
+  if ((systolic >= 140 && systolic < 180) || (diastolic >= 90 && diastolic < 120)) {
     return {
       category: 'Stage 2 Hypertension',
       level: 'stage2',
       color: 'text-red-700',
       bgColor: 'bg-red-50',
-      description: 'Requires medication and lifestyle changes'
+      description: 'Medication + lifestyle changes required'
     };
   }
   
-  // Stage 1 Hypertension
-  if (systolic >= 130 || diastolic >= 80) {
+  // Stage 1 Hypertension - 130-139 OR 80-89
+  // Increased cardiovascular risk
+  if ((systolic >= 130 && systolic < 140) || (diastolic >= 80 && diastolic < 90)) {
     return {
       category: 'Stage 1 Hypertension',
       level: 'stage1',
       color: 'text-orange-700',
       bgColor: 'bg-orange-50',
-      description: 'Lifestyle changes recommended, may need medication'
+      description: 'Lifestyle changes + possible medication'
     };
   }
   
-  // Elevated Blood Pressure
-  if (systolic >= 120 && systolic <= 129 && diastolic < 80) {
+  // Elevated (High-Normal) - 120-129 AND <80
+  // Risk of developing hypertension
+  if (systolic >= 120 && systolic < 130 && diastolic < 80) {
     return {
       category: 'Elevated',
       level: 'elevated',
@@ -118,24 +122,26 @@ const getBloodPressureAssessment = (systolic: number, diastolic: number): {
     };
   }
   
-  // Low Blood Pressure (Hypotension)
+  // Low Blood Pressure (Hypotension) - <90 OR <60
+  // May cause symptoms if severe
   if (systolic < 90 || diastolic < 60) {
     return {
       category: 'Low',
       level: 'low',
       color: 'text-blue-700',
       bgColor: 'bg-blue-50',
-      description: 'Monitor for symptoms'
+      description: 'Investigate underlying causes if symptomatic'
     };
   }
   
-  // Normal Blood Pressure
+  // Normal - <120 AND <80
+  // Optimal cardiovascular health
   return {
     category: 'Normal',
     level: 'normal',
     color: 'text-emerald-700',
     bgColor: 'bg-emerald-50',
-    description: 'Optimal blood pressure range'
+    description: 'Optimal cardiovascular health - Maintain healthy lifestyle'
   };
 };
 
@@ -394,8 +400,8 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
                               <span className="text-base lg:text-xl font-bold text-slate-700">{reading.diastolic}</span>
                             </div>
                             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">mmHg</div>
-                            <div className={`mt-1 text-[10px] lg:text-xs font-medium ${isOverTarget ? 'text-red-600' : 'text-emerald-600'}`}>
-                              <span className="opacity-70">{t('table.targetLabel')}</span> {targets.systolic}/{targets.diastolic} mmHg
+                            <div className={`mt-1 text-[10px] lg:text-xs font-semibold ${isOverTarget ? 'text-red-600' : 'text-emerald-600'}`}>
+                              {reading.systolic > targets.systolic ? '+' : ''}{reading.systolic - targets.systolic}/{reading.diastolic > targets.diastolic ? '+' : ''}{reading.diastolic - targets.diastolic} <span className="opacity-70 text-[9px] lg:text-[10px]">vs target</span>
                             </div>
                           </div>
                         </td>
@@ -553,8 +559,8 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
                               <span className="text-3xl font-bold text-slate-700">{reading.diastolic}</span>
                             </div>
                             <div className="text-sm font-semibold text-slate-500 uppercase tracking-wide">mmHg</div>
-                            <div className={`mt-1 text-xs font-semibold ${isOverTarget ? 'text-red-600' : 'text-emerald-600'}`}>
-                              <span className="opacity-70">{t('table.targetLabel')}</span> {targets.systolic}/{targets.diastolic} mmHg
+                            <div className={`mt-1 text-xs font-bold ${isOverTarget ? 'text-red-600' : 'text-emerald-600'}`}>
+                              {reading.systolic > targets.systolic ? '+' : ''}{reading.systolic - targets.systolic}/{reading.diastolic > targets.diastolic ? '+' : ''}{reading.diastolic - targets.diastolic} <span className="opacity-70 text-[10px]">vs target</span>
                             </div>
                           </div>
                         </div>

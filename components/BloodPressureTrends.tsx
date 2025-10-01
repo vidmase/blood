@@ -293,7 +293,7 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
 
   // Modern Enhanced Chart View
   if (viewMode === 'chart') {
-    const chartData = readings.slice(0, 12).reverse(); // Show last 12 readings for cleaner display
+    const chartData = readings.slice(0, 15).reverse(); // Show last 15 readings for better trend visibility
     
     // Smart scaling for better visualization
     const allSystolic = chartData.map(r => r.systolic);
@@ -307,13 +307,13 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
     const maxPulse = Math.max(...allPulse);
     const minPulse = Math.min(...allPulse);
     
-    // Create separate scales for better visualization
-    const bpMaxValue = Math.max(maxSystolic + 15, 160);
-    const bpMinValue = Math.max(minDiastolic - 15, 40);
+    // Create separate scales with smart boundaries
+    const bpMaxValue = Math.ceil((Math.max(maxSystolic + 15, 160)) / 10) * 10;
+    const bpMinValue = Math.floor((Math.max(minDiastolic - 15, 40)) / 10) * 10;
     const bpRange = bpMaxValue - bpMinValue;
     
-    const pulseMaxValue = Math.max(maxPulse + 10, 100);
-    const pulseMinValue = Math.max(minPulse - 10, 50);
+    const pulseMaxValue = Math.ceil((Math.max(maxPulse + 10, 100)) / 10) * 10;
+    const pulseMinValue = Math.floor((Math.max(minPulse - 10, 50)) / 10) * 10;
     const pulseRange = pulseMaxValue - pulseMinValue;
 
     // Create chart points with improved positioning
@@ -340,392 +340,520 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
     const pulsePoints = createPulsePoints(allPulse);
 
     return (
-      <div className="bg-gradient-to-br from-white to-slate-50/30 rounded-2xl shadow-xl border border-slate-200/60 overflow-hidden">
-        {/* Enhanced Header */}
-        <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-slate-200/60 px-6 py-5">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="bg-gradient-to-br from-white via-indigo-50/20 to-purple-50/30 rounded-3xl shadow-2xl border border-indigo-200/40 overflow-hidden backdrop-blur-sm">
+        {/* Modern Gradient Header with Glass Effect */}
+        <div className="relative bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-4 sm:px-6 py-6 sm:py-8 overflow-hidden">
+          {/* Animated Background Pattern */}
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute inset-0" style={{
+              backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
+              backgroundSize: '32px 32px'
+            }}></div>
+          </div>
+          
+          <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              {/* Animated Icon */}
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-lg ring-2 ring-white/30">
+                <svg className="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
             <div>
-              <h3 className="text-2xl font-bold text-slate-900">{t('trends.title')}</h3>
-              <p className="text-sm text-slate-600 mt-1">{t('trends.interactiveChart', { count: chartData.length })}</p>
+                <h3 className="text-xl sm:text-2xl font-black text-white drop-shadow-lg tracking-tight">{t('trends.title')}</h3>
+                <p className="text-xs sm:text-sm text-white/90 mt-1 font-medium">
+                  📊 {chartData.length} readings • {new Date(chartData[0]?.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(chartData[chartData.length - 1]?.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </p>
             </div>
-            <div className="flex items-center gap-2 bg-white/60 rounded-lg p-1">
+            </div>
+            
+            {/* Modern View Switcher */}
+            <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-md rounded-xl p-1.5 shadow-lg ring-1 ring-white/30">
               <button
                 onClick={() => setViewMode('cards')}
-                className="px-3 py-1.5 rounded-md text-sm font-medium text-slate-600 hover:bg-white hover:shadow-sm transition-all"
+                className="px-3 py-2 rounded-lg text-xs sm:text-sm font-bold text-white/80 hover:bg-white/20 hover:text-white transition-all active:scale-95"
               >
-                {t('trends.cards')}
+                📊 Cards
               </button>
               <button
                 onClick={() => setViewMode('chart')}
-                className="px-3 py-1.5 rounded-md text-sm font-medium bg-white text-indigo-700 shadow-sm"
+                className="px-3 py-2 rounded-lg text-xs sm:text-sm font-bold bg-white text-indigo-600 shadow-lg transition-all active:scale-95"
               >
-                {t('trends.chart')}
+                📈 Chart
               </button>
               <button
                 onClick={() => setViewMode('compact')}
-                className="px-3 py-1.5 rounded-md text-sm font-medium text-slate-600 hover:bg-white hover:shadow-sm transition-all"
+                className="px-3 py-2 rounded-lg text-xs sm:text-sm font-bold text-white/80 hover:bg-white/20 hover:text-white transition-all active:scale-95"
               >
-                {t('trends.compact')}
+                ⚡ Compact
               </button>
               <button
                 onClick={() => setViewMode('gauge')}
-                className="px-3 py-1.5 rounded-md text-sm font-medium text-slate-600 hover:bg-white hover:shadow-sm transition-all"
+                className="px-3 py-2 rounded-lg text-xs sm:text-sm font-bold text-white/80 hover:bg-white/20 hover:text-white transition-all active:scale-95"
               >
-                {t('trends.gauge')}
+                🎯 Gauge
               </button>
             </div>
           </div>
         </div>
 
         <div className="p-8">
-          {/* Modern Legend with Health Zones */}
-          <div className="mb-6 sm:mb-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
-              {/* Systolic Legend Card */}
-              <div className="bg-gradient-to-br from-red-50 to-red-100/50 rounded-2xl p-4 border border-red-200/60">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-6 h-6 bg-gradient-to-r from-red-500 to-red-600 rounded-full shadow-lg flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-full"></div>
+          {/* Premium Stats Cards with Glassmorphism */}
+          <div className="mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* Systolic Stats Card */}
+              <div className="group relative bg-gradient-to-br from-rose-500 to-red-600 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden">
+                {/* Animated Background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                <div className="relative">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg ring-2 ring-white/30">
+                      <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                      </svg>
                   </div>
                   <div>
-                    <h4 className="font-bold text-red-700">{t('trends.systolic')}</h4>
-                    <p className="text-xs text-red-600">{t('trends.upperPressure')}</p>
+                      <h4 className="text-sm font-bold text-white/90 uppercase tracking-wide">Systolic</h4>
+                      <p className="text-xs text-white/70">Upper Pressure</p>
                   </div>
                 </div>
-                <div className="space-y-1 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">{t('trends.currentAvg')}:</span>
-                    <span className="font-bold text-red-700">{Math.round(allSystolic.reduce((a, b) => a + b, 0) / allSystolic.length)} mmHg</span>
+                  
+                  <div className="flex items-baseline gap-2 mb-2">
+                    <span className="text-4xl font-black text-white drop-shadow-lg">{Math.round(allSystolic.reduce((a, b) => a + b, 0) / allSystolic.length)}</span>
+                    <span className="text-lg font-bold text-white/80">mmHg</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">{t('gauge.normal')}:</span>
-                    <span className="text-slate-500">&lt;120 mmHg</span>
+                  
+                  <div className="flex items-center gap-2 text-xs">
+                    <div className="px-2 py-1 bg-white/20 backdrop-blur-sm rounded-lg">
+                      <span className="font-semibold text-white/90">Target: &lt;120</span>
+                    </div>
+                    <div className="px-2 py-1 bg-white/20 backdrop-blur-sm rounded-lg">
+                      <span className="font-semibold text-white/90">Range: {minSystolic}-{maxSystolic}</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Diastolic Legend Card */}
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-2xl p-4 border border-blue-200/60">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full shadow-lg flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-full"></div>
+              {/* Diastolic Stats Card */}
+              <div className="group relative bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                <div className="relative">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg ring-2 ring-white/30">
+                      <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                      </svg>
                   </div>
                   <div>
-                    <h4 className="font-bold text-blue-700">Diastolic Pressure</h4>
-                    <p className="text-xs text-blue-600">Lower reading</p>
+                      <h4 className="text-sm font-bold text-white/90 uppercase tracking-wide">Diastolic</h4>
+                      <p className="text-xs text-white/70">Lower Pressure</p>
                   </div>
                 </div>
-                <div className="space-y-1 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Current Avg:</span>
-                    <span className="font-bold text-blue-700">{Math.round(allDiastolic.reduce((a, b) => a + b, 0) / allDiastolic.length)} mmHg</span>
+                  
+                  <div className="flex items-baseline gap-2 mb-2">
+                    <span className="text-4xl font-black text-white drop-shadow-lg">{Math.round(allDiastolic.reduce((a, b) => a + b, 0) / allDiastolic.length)}</span>
+                    <span className="text-lg font-bold text-white/80">mmHg</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Normal:</span>
-                    <span className="text-slate-500">&lt;80 mmHg</span>
+                  
+                  <div className="flex items-center gap-2 text-xs">
+                    <div className="px-2 py-1 bg-white/20 backdrop-blur-sm rounded-lg">
+                      <span className="font-semibold text-white/90">Target: &lt;80</span>
+                    </div>
+                    <div className="px-2 py-1 bg-white/20 backdrop-blur-sm rounded-lg">
+                      <span className="font-semibold text-white/90">Range: {minDiastolic}-{maxDiastolic}</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Pulse Legend Card */}
-              <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-2xl p-4 border border-emerald-200/60">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-6 h-6 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full shadow-lg flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+              {/* Pulse Stats Card */}
+              <div className="group relative bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                <div className="relative">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg ring-2 ring-white/30">
+                      <div className="w-2 h-2 bg-white rounded-full animate-pulse shadow-lg"></div>
                   </div>
                   <div>
-                    <h4 className="font-bold text-emerald-700">Heart Rate</h4>
-                    <p className="text-xs text-emerald-600">Pulse rate</p>
+                      <h4 className="text-sm font-bold text-white/90 uppercase tracking-wide">Heart Rate</h4>
+                      <p className="text-xs text-white/70">Pulse Rate</p>
                   </div>
                 </div>
-                <div className="space-y-1 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Current Avg:</span>
-                    <span className="font-bold text-emerald-700">{Math.round(allPulse.reduce((a, b) => a + b, 0) / allPulse.length)} BPM</span>
+                  
+                  <div className="flex items-baseline gap-2 mb-2">
+                    <span className="text-4xl font-black text-white drop-shadow-lg">{Math.round(allPulse.reduce((a, b) => a + b, 0) / allPulse.length)}</span>
+                    <span className="text-lg font-bold text-white/80">BPM</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Normal:</span>
-                    <span className="text-slate-500">60-100 BPM</span>
+                  
+                  <div className="flex items-center gap-2 text-xs">
+                    <div className="px-2 py-1 bg-white/20 backdrop-blur-sm rounded-lg">
+                      <span className="font-semibold text-white/90">Target: 60-100</span>
+                    </div>
+                    <div className="px-2 py-1 bg-white/20 backdrop-blur-sm rounded-lg">
+                      <span className="font-semibold text-white/90">Range: {minPulse}-{maxPulse}</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Modern Professional Chart */}
-          <div className="relative bg-gradient-to-br from-white to-slate-50/30 rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg sm:shadow-xl border border-slate-200/60">
+          {/* Premium Chart Container */}
+          <div className="relative bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200/50 overflow-hidden">
+            {/* Decorative Corner Accents */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-100/40 to-purple-100/40 rounded-bl-full"></div>
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-pink-100/40 to-rose-100/40 rounded-tr-full"></div>
+            
             {/* Chart Title */}
-            <div className="mb-4 sm:mb-6 text-center">
-              <h4 className="text-base sm:text-lg font-bold text-slate-800 mb-1 sm:mb-2">Blood Pressure Trend Analysis</h4>
-              <p className="text-xs sm:text-sm text-slate-600">Last {chartData.length} readings • {new Date(chartData[0]?.date).toLocaleDateString()} - {new Date(chartData[chartData.length - 1]?.date).toLocaleDateString()}</p>
+            <div className="relative mb-6 text-center">
+              <div className="inline-flex items-center gap-3 bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-3 rounded-2xl border border-indigo-200/50 shadow-sm">
+                <div className="w-2 h-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full animate-pulse"></div>
+                <h4 className="text-lg sm:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
+                  Trend Analysis
+                </h4>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-500 mt-3 font-medium">
+                📅 {new Date(chartData[0]?.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - {new Date(chartData[chartData.length - 1]?.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </p>
             </div>
 
-            <div className="relative h-64 sm:h-80 md:h-96">
-              <svg width="100%" height="100%" className="overflow-visible" style={{ background: 'linear-gradient(135deg, #fafafa 0%, #f8fafc 100%)' }}>
-                {/* Enhanced Background Grid */}
+            <div className="relative">
+              <svg 
+                width="100%" 
+                height="500" 
+                viewBox="0 0 1000 500" 
+                className="rounded-2xl" 
+                style={{ background: 'linear-gradient(180deg, #fafafa 0%, #ffffff 100%)' }}
+              >
+                {/* Definitions */}
                 <defs>
-                  <linearGradient id="chartBg" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#ffffff" stopOpacity="0.8"/>
-                    <stop offset="100%" stopColor="#f8fafc" stopOpacity="0.9"/>
+                  {/* Gradients for area fills */}
+                  <linearGradient id="systolicGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#ef4444" stopOpacity="0.3"/>
+                    <stop offset="100%" stopColor="#ef4444" stopOpacity="0.05"/>
                   </linearGradient>
+                  <linearGradient id="diastolicGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3"/>
+                    <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.05"/>
+                  </linearGradient>
+                  <linearGradient id="pulseGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.25"/>
+                    <stop offset="100%" stopColor="#10b981" stopOpacity="0.05"/>
+                  </linearGradient>
+                  
+                  {/* Shadow filter */}
+                  <filter id="shadow">
+                    <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.15"/>
+                  </filter>
+                  
+                  {/* Glow filter */}
                   <filter id="glow">
-                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                    <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
                     <feMerge> 
                       <feMergeNode in="coloredBlur"/>
                       <feMergeNode in="SourceGraphic"/>
                     </feMerge>
                   </filter>
-                  <filter id="shadow">
-                    <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.2"/>
-                  </filter>
                 </defs>
                 
-                <rect width="100%" height="100%" fill="url(#chartBg)" rx="12"/>
-
-                {/* Professional Grid Lines */}
-                {[0, 20, 40, 60, 80, 100].map((percent, index) => {
-                  const value = Math.round(bpMaxValue - (percent / 100) * bpRange);
-                  const isMainLine = percent === 0 || percent === 100 || percent === 50;
-                  return (
-                    <g key={percent}>
+                {/* Chart Area - Using proper coordinate system */}
+                {(() => {
+                  const padding = { left: 80, right: 40, top: 30, bottom: 80 };
+                  const chartWidth = 1000 - padding.left - padding.right;
+                  const chartHeight = 500 - padding.top - padding.bottom;
+                  
+                  // Calculate Y positions for BP values
+                  const getY = (value: number) => {
+                    return padding.top + ((bpMaxValue - value) / bpRange) * chartHeight;
+                  };
+                  
+                  // Calculate X positions
+                  const getX = (index: number) => {
+                    return padding.left + (index / (chartData.length - 1)) * chartWidth;
+                  };
+                  
+                  // Grid lines (horizontal)
+                  const gridLines = [];
+                  const gridStep = Math.ceil(bpRange / 5 / 10) * 10; // Round to nearest 10
+                  for (let value = Math.floor(bpMinValue / gridStep) * gridStep; value <= bpMaxValue; value += gridStep) {
+                    const y = getY(value);
+                    gridLines.push(
+                      <g key={`grid-${value}`}>
                       <line
-                        x1="5%"
-                        y1={`${percent}%`}
-                        x2="95%"
-                        y2={`${percent}%`}
-                        stroke={isMainLine ? "#cbd5e1" : "#e2e8f0"}
-                        strokeWidth={isMainLine ? "1.5" : "0.8"}
-                        strokeDasharray={isMainLine ? "none" : "4,4"}
-                        opacity={isMainLine ? "0.8" : "0.4"}
+                          x1={padding.left}
+                          y1={y}
+                          x2={1000 - padding.right}
+                          y2={y}
+                          stroke="#e2e8f0"
+                          strokeWidth="1"
+                          strokeDasharray="4,4"
                       />
                       <text
-                        x="2%"
-                        y={`${percent}%`}
-                        textAnchor="start"
+                          x={padding.left - 10}
+                          y={y}
+                          textAnchor="end"
                         dominantBaseline="middle"
-                        className="text-xs fill-slate-600 font-semibold"
-                        style={{ textShadow: '0 1px 2px rgba(255,255,255,0.8)' }}
+                          className="fill-slate-600 text-sm font-semibold"
                       >
                         {value}
                       </text>
                     </g>
                   );
-                })}
+                  }
+                  
+                  return <>{gridLines}</>;
+                })()}
 
-                {/* Enhanced Gradient Definitions */}
-                <defs>
-                  <linearGradient id="systolicGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#ef4444" stopOpacity="0.4"/>
-                    <stop offset="50%" stopColor="#ef4444" stopOpacity="0.2"/>
-                    <stop offset="100%" stopColor="#ef4444" stopOpacity="0.05"/>
-                  </linearGradient>
-                  <linearGradient id="diastolicGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.4"/>
-                    <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.2"/>
-                    <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.05"/>
-                  </linearGradient>
-                  <linearGradient id="pulseGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.3"/>
-                    <stop offset="100%" stopColor="#10b981" stopOpacity="0.05"/>
-                  </linearGradient>
-                </defs>
-                
-                {/* Systolic Area with Enhanced Gradient */}
+                {/* Draw the actual chart data */}
+                {(() => {
+                  const padding = { left: 80, right: 40, top: 30, bottom: 80 };
+                  const chartWidth = 1000 - padding.left - padding.right;
+                  const chartHeight = 500 - padding.top - padding.bottom;
+                  
+                  const getY = (value: number) => {
+                    return padding.top + ((bpMaxValue - value) / bpRange) * chartHeight;
+                  };
+                  
+                  const getX = (index: number) => {
+                    return padding.left + (index / (chartData.length - 1)) * chartWidth;
+                  };
+                  
+                  // Create path strings
+                  const systolicPath = chartData.map((reading, i) => {
+                    const x = getX(i);
+                    const y = getY(reading.systolic);
+                    return i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
+                  }).join(' ');
+                  
+                  const diastolicPath = chartData.map((reading, i) => {
+                    const x = getX(i);
+                    const y = getY(reading.diastolic);
+                    return i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
+                  }).join(' ');
+                  
+                  const pulsePath = chartData.map((reading, i) => {
+                    const x = getX(i);
+                    // Scale pulse to fit in the BP range for visualization
+                    const pulseScaled = ((reading.pulse - pulseMinValue) / pulseRange) * bpRange + bpMinValue;
+                    const y = getY(pulseScaled);
+                    return i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
+                  }).join(' ');
+                  
+                  // Area fills
+                  const systolicArea = `${systolicPath} L ${getX(chartData.length - 1)} ${padding.top + chartHeight} L ${padding.left} ${padding.top + chartHeight} Z`;
+                  const diastolicArea = `${diastolicPath} L ${getX(chartData.length - 1)} ${padding.top + chartHeight} L ${padding.left} ${padding.top + chartHeight} Z`;
+                  
+                  return (
+                    <>
+                      {/* Area fills */}
+                      <path d={systolicArea} fill="url(#systolicGradient)" opacity="0.6" />
+                      <path d={diastolicArea} fill="url(#diastolicGradient)" opacity="0.6" />
+                      
+                      {/* Lines */}
                 <path
-                  d={`M 5,100% ${systolicPoints.map(p => `L ${5 + (p.x * 0.9)}%,${p.y}%`).join(' ')} L 95%,100% Z`}
-                  fill="url(#systolicGradient)"
-                  opacity="0.8"
-                />
-                
-                {/* Diastolic Area with Enhanced Gradient */}
-                <path
-                  d={`M 5,100% ${diastolicPoints.map(p => `L ${5 + (p.x * 0.9)}%,${p.y}%`).join(' ')} L 95%,100% Z`}
-                  fill="url(#diastolicGradient)"
-                  opacity="0.8"
-                />
-                
-                {/* Modern Systolic Line */}
-                <path
-                  d={`M ${systolicPoints.map(p => `${5 + (p.x * 0.9)},${p.y}`).join(' L ')}`}
+                        d={systolicPath}
                   fill="none"
-                  stroke="url(#systolicLineGradient)"
+                        stroke="#ef4444"
                   strokeWidth="4"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   filter="url(#shadow)"
                 />
-                
-                {/* Modern Diastolic Line */}
                 <path
-                  d={`M ${diastolicPoints.map(p => `${5 + (p.x * 0.9)},${p.y}`).join(' L ')}`}
+                        d={diastolicPath}
                   fill="none"
-                  stroke="url(#diastolicLineGradient)"
+                        stroke="#3b82f6"
                   strokeWidth="4"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   filter="url(#shadow)"
                 />
-
-                {/* Modern Pulse Line */}
                 <path
-                  d={`M ${pulsePoints.map(p => `${5 + (p.x * 0.9)},${p.y}`).join(' L ')}`}
+                        d={pulsePath}
                   fill="none"
                   stroke="#10b981"
                   strokeWidth="3"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeDasharray="8,4"
+                        strokeDasharray="6,3"
                   filter="url(#shadow)"
-                  opacity="0.9"
-                />
-
-                {/* Line Gradients */}
-                <defs>
-                  <linearGradient id="systolicLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#dc2626"/>
-                    <stop offset="50%" stopColor="#ef4444"/>
-                    <stop offset="100%" stopColor="#f87171"/>
-                  </linearGradient>
-                  <linearGradient id="diastolicLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#1d4ed8"/>
-                    <stop offset="50%" stopColor="#3b82f6"/>
-                    <stop offset="100%" stopColor="#60a5fa"/>
-                  </linearGradient>
-                </defs>
-
-                {/* Enhanced Data Points with Tooltip */}
-                {systolicPoints.map((point, index) => (
-                  <g key={`systolic-${index}`}>
-                    <circle
-                      cx={`${5 + (point.x * 0.9)}%`}
-                      cy={`${point.y}%`}
-                      r="8"
-                      fill="#ef4444"
-                      fillOpacity="0.2"
-                      stroke="none"
-                    />
-                    <circle
-                      cx={`${5 + (point.x * 0.9)}%`}
-                      cy={`${point.y}%`}
-                      r="5"
-                      fill="#ef4444"
-                      stroke="white"
-                      strokeWidth="3"
-                      filter="url(#shadow)"
-                      className="hover:r-7 transition-all cursor-pointer"
-                      title=""
-                    />
-                  </g>
-                ))}
-
-                {diastolicPoints.map((point, index) => (
-                  <g key={`diastolic-${index}`}>
-                    <circle
-                      cx={`${5 + (point.x * 0.9)}%`}
-                      cy={`${point.y}%`}
-                      r="8"
-                      fill="#3b82f6"
-                      fillOpacity="0.2"
-                      stroke="none"
-                    />
-                    <circle
-                      cx={`${5 + (point.x * 0.9)}%`}
-                      cy={`${point.y}%`}
-                      r="5"
-                      fill="#3b82f6"
-                      stroke="white"
-                      strokeWidth="3"
-                      filter="url(#shadow)"
-                      className="hover:r-7 transition-all cursor-pointer"
-                      title=""
-                    />
-                  </g>
-                ))}
-
-                {pulsePoints.map((point, index) => (
-                  <g key={`pulse-${index}`}>
-                    <circle
-                      cx={`${5 + (point.x * 0.9)}%`}
-                      cy={`${point.y}%`}
-                      r="6"
-                      fill="#10b981"
-                      fillOpacity="0.2"
-                      stroke="none"
-                    />
-                    <circle
-                      cx={`${5 + (point.x * 0.9)}%`}
-                      cy={`${point.y}%`}
-                      r="4"
-                      fill="#10b981"
-                      stroke="white"
+                      />
+                      
+                      {/* Data points with values */}
+                      {chartData.map((reading, i) => {
+                        const x = getX(i);
+                        const sysY = getY(reading.systolic);
+                        const diaY = getY(reading.diastolic);
+                        const pulseScaled = ((reading.pulse - pulseMinValue) / pulseRange) * bpRange + bpMinValue;
+                        const pulY = getY(pulseScaled);
+                        
+                        return (
+                          <g key={`points-${i}`}>
+                            {/* Systolic point */}
+                            <circle cx={x} cy={sysY} r="6" fill="#ef4444" stroke="white" strokeWidth="2.5" filter="url(#shadow)" className="cursor-pointer hover:r-8 transition-all">
+                              <title>{reading.systolic} mmHg (Systolic)</title>
+                            </circle>
+                            
+                            {/* Diastolic point */}
+                            <circle cx={x} cy={diaY} r="6" fill="#3b82f6" stroke="white" strokeWidth="2.5" filter="url(#shadow)" className="cursor-pointer hover:r-8 transition-all">
+                              <title>{reading.diastolic} mmHg (Diastolic)</title>
+                            </circle>
+                            
+                            {/* Pulse point */}
+                            <circle cx={x} cy={pulY} r="5" fill="#10b981" stroke="white" strokeWidth="2" filter="url(#shadow)" className="cursor-pointer hover:r-7 transition-all">
+                              <title>{reading.pulse} BPM (Pulse)</title>
+                            </circle>
+                            
+                            {/* Value labels on data points */}
+                            {(i === 0 || i === chartData.length - 1 || i % Math.ceil(chartData.length / 6) === 0) && (
+                              <g>
+                                {/* Systolic label */}
+                                <text
+                                  x={x}
+                                  y={sysY - 15}
+                                  textAnchor="middle"
+                                  className="fill-red-600 text-xs font-bold"
+                                  style={{ textShadow: '0 0 3px white, 0 0 3px white' }}
+                                >
+                                  {reading.systolic}
+                                </text>
+                                
+                                {/* Diastolic label */}
+                                <text
+                                  x={x}
+                                  y={diaY + 20}
+                                  textAnchor="middle"
+                                  className="fill-blue-600 text-xs font-bold"
+                                  style={{ textShadow: '0 0 3px white, 0 0 3px white' }}
+                                >
+                                  {reading.diastolic}
+                                </text>
+                              </g>
+                            )}
+                          </g>
+                        );
+                      })}
+                      
+                      {/* X-axis labels (dates) */}
+                      {chartData.map((reading, i) => {
+                        const x = getX(i);
+                        const y = padding.top + chartHeight + 20;
+                        
+                        // Show labels for first, last, and every few points
+                        if (i === 0 || i === chartData.length - 1 || i % Math.ceil(chartData.length / 5) === 0) {
+                          const date = new Date(reading.date);
+                          return (
+                            <g key={`xlabel-${i}`}>
+                              <line
+                                x1={x}
+                                y1={padding.top + chartHeight}
+                                x2={x}
+                                y2={padding.top + chartHeight + 8}
+                                stroke="#94a3b8"
                       strokeWidth="2"
-                      filter="url(#shadow)"
-                      className="hover:r-6 transition-all cursor-pointer"
-                      title=""
-                    />
-                  </g>
-                ))}
-              </svg>
-
-              {/* Y-axis label */}
-              <div className="absolute -left-12 top-1/2 transform -rotate-90 -translate-y-1/2">
-                <span className="text-xs font-medium text-slate-600">mmHg / BPM</span>
-              </div>
-            </div>
-
-            {/* Enhanced X-axis with Better Date Display */}
-            <div className="mt-6 px-4">
-              <div className="flex justify-between items-center">
-                {chartData.map((reading, index) => {
-                  const showLabel = index === 0 || index === chartData.length - 1 || index % Math.ceil(chartData.length / 4) === 0;
-                  if (!showLabel) return <div key={index} className="w-1"></div>;
-                  
-                  return (
-                    <div key={index} className="flex flex-col items-center">
-                      <div className="w-0.5 h-3 bg-slate-300 mb-2"></div>
-                      <div className="text-xs font-semibold text-slate-600 text-center">
-                        <div>{new Date(reading.date).toLocaleDateString(undefined, { 
-                          month: 'short', 
-                          day: 'numeric' 
-                        })}</div>
-                        <div className="text-xs text-slate-400 mt-0.5">
-                          {new Date(reading.date).toLocaleTimeString(undefined, { 
-                            hour: 'numeric',
-                            minute: '2-digit',
-                            hour12: true 
-                          })}
-                        </div>
-                      </div>
-                    </div>
+                              />
+                              <text
+                                x={x}
+                                y={y}
+                                textAnchor="middle"
+                                className="fill-slate-600 text-xs font-semibold"
+                              >
+                                {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </text>
+                              <text
+                                x={x}
+                                y={y + 15}
+                                textAnchor="middle"
+                                className="fill-slate-400 text-xs"
+                              >
+                                {date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                              </text>
+                            </g>
+                          );
+                        }
+                        return null;
+                      })}
+                      
+                      {/* Axis labels */}
+                      <text
+                        x={padding.left - 60}
+                        y={padding.top + chartHeight / 2}
+                        textAnchor="middle"
+                        className="fill-slate-700 text-sm font-bold"
+                        transform={`rotate(-90, ${padding.left - 60}, ${padding.top + chartHeight / 2})`}
+                      >
+                        Blood Pressure (mmHg)
+                      </text>
+                      
+                      {/* Chart Legend */}
+                      <g transform="translate(820, 40)">
+                        <rect x="0" y="0" width="160" height="95" fill="white" stroke="#e2e8f0" strokeWidth="2" rx="8" opacity="0.95" />
+                        
+                        {/* Systolic legend */}
+                        <circle cx="15" cy="20" r="6" fill="#ef4444" stroke="white" strokeWidth="2" />
+                        <text x="28" y="24" className="fill-slate-700 text-sm font-semibold">Systolic</text>
+                        
+                        {/* Diastolic legend */}
+                        <circle cx="15" cy="45" r="6" fill="#3b82f6" stroke="white" strokeWidth="2" />
+                        <text x="28" y="49" className="fill-slate-700 text-sm font-semibold">Diastolic</text>
+                        
+                        {/* Pulse legend */}
+                        <circle cx="15" cy="70" r="5" fill="#10b981" stroke="white" strokeWidth="2" />
+                        <line x1="5" y1="70" x2="25" y2="70" stroke="#10b981" strokeWidth="2" strokeDasharray="4,2" />
+                        <text x="28" y="74" className="fill-slate-700 text-sm font-semibold">Pulse (scaled)</text>
+                      </g>
+                    </>
                   );
-                })}
+                })()}
+              </svg>
+                        </div>
+
+            {/* Premium Health Zone Reference Cards */}
+            <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="group relative bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative text-center">
+                  <div className="w-8 h-8 mx-auto mb-2 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                    <span className="text-xl">✅</span>
+                      </div>
+                  <div className="text-xs font-bold text-white/80 uppercase tracking-wider mb-1">Normal</div>
+                  <div className="text-lg font-black text-white drop-shadow-md">&lt;120/80</div>
               </div>
             </div>
 
-            {/* Health Zone Indicators */}
-            <div className="mt-4 sm:mt-6 md:mt-8 grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
-              <div className="bg-gradient-to-r from-emerald-50 to-emerald-100/50 rounded-xl p-3 border border-emerald-200/60">
-                <div className="text-center">
-                  <div className="text-xs font-semibold text-emerald-700 mb-1">Optimal BP</div>
-                  <div className="text-sm font-bold text-emerald-800">&lt;120/80</div>
+              <div className="group relative bg-gradient-to-br from-amber-500 to-yellow-600 rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative text-center">
+                  <div className="w-8 h-8 mx-auto mb-2 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                    <span className="text-xl">⚠️</span>
+                </div>
+                  <div className="text-xs font-bold text-white/80 uppercase tracking-wider mb-1">Elevated</div>
+                  <div className="text-lg font-black text-white drop-shadow-md">120-129/&lt;80</div>
+              </div>
+                </div>
+              
+              <div className="group relative bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative text-center">
+                  <div className="w-8 h-8 mx-auto mb-2 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                    <span className="text-xl">🔶</span>
+              </div>
+                  <div className="text-xs font-bold text-white/80 uppercase tracking-wider mb-1">Stage 1</div>
+                  <div className="text-lg font-black text-white drop-shadow-md">130-139/80-89</div>
                 </div>
               </div>
-              <div className="bg-gradient-to-r from-yellow-50 to-yellow-100/50 rounded-xl p-3 border border-yellow-200/60">
-                <div className="text-center">
-                  <div className="text-xs font-semibold text-yellow-700 mb-1">Elevated</div>
-                  <div className="text-sm font-bold text-yellow-800">120-129/&lt;80</div>
-                </div>
-              </div>
-              <div className="bg-gradient-to-r from-orange-50 to-orange-100/50 rounded-xl p-3 border border-orange-200/60">
-                <div className="text-center">
-                  <div className="text-xs font-semibold text-orange-700 mb-1">High Stage 1</div>
-                  <div className="text-sm font-bold text-orange-800">130-139/80-89</div>
-                </div>
-              </div>
-              <div className="bg-gradient-to-r from-red-50 to-red-100/50 rounded-xl p-3 border border-red-200/60">
-                <div className="text-center">
-                  <div className="text-xs font-semibold text-red-700 mb-1">High Stage 2</div>
-                  <div className="text-sm font-bold text-red-800">≥140/90</div>
+              
+              <div className="group relative bg-gradient-to-br from-red-600 to-rose-700 rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative text-center">
+                  <div className="w-8 h-8 mx-auto mb-2 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                    <span className="text-xl">🚨</span>
+                  </div>
+                  <div className="text-xs font-bold text-white/80 uppercase tracking-wider mb-1">Stage 2</div>
+                  <div className="text-lg font-black text-white drop-shadow-md">≥140/90</div>
                 </div>
               </div>
             </div>

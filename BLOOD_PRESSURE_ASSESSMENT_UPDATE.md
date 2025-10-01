@@ -5,41 +5,52 @@ Updated the blood pressure assessment system in the ReadingsTable component to a
 
 ## Updated Classification System
 
-### 1. **Hypertensive Crisis** 🚨
+### 1. **Hypertensive Crisis (Critical)** 🚨
 - **Range:** Systolic ≥180 OR Diastolic ≥120 mmHg
-- **Color:** Dark Red (`from-red-700 to-red-800`)
-- **Description:** Emergency - Seek immediate medical attention
+- **Logic:** AND/OR (either condition triggers crisis)
+- **Color:** Dark Red (`text-red-900`, `bg-red-100`)
+- **Description:** Medical emergency - Immediate medical attention required
+- **Action:** Call 911 immediately
 - **Special Feature:** Shows animated warning "⚠️ Emergency"
 
 ### 2. **Stage 2 Hypertension**
-- **Range:** Systolic ≥140 OR Diastolic ≥90 mmHg
-- **Color:** Red (`from-red-500 to-red-600`)
-- **Description:** Requires medication and lifestyle changes
-- **Medical Note:** Significantly increased cardiovascular risk
+- **Range:** Systolic 140-179 OR Diastolic 90-109 mmHg
+- **Logic:** OR (either condition qualifies)
+- **Color:** Red (`text-red-700`, `bg-red-50`)
+- **Description:** Medication + lifestyle changes required
+- **Risk Level:** High cardiovascular risk
+- **Medical Note:** Significantly increased risk of heart attack and stroke
 
 ### 3. **Stage 1 Hypertension**
 - **Range:** Systolic 130-139 OR Diastolic 80-89 mmHg
-- **Color:** Orange (`from-orange-500 to-orange-600`)
-- **Description:** Lifestyle changes recommended, may need medication
+- **Logic:** OR (either condition qualifies)
+- **Color:** Orange (`text-orange-700`, `bg-orange-50`)
+- **Description:** Lifestyle changes + possible medication
+- **Risk Level:** Increased cardiovascular risk
 - **Medical Note:** Based on 2017 AHA guidelines (lowered from 140/90)
 
-### 4. **Elevated Blood Pressure**
+### 4. **Elevated Blood Pressure (High-Normal)**
 - **Range:** Systolic 120-129 AND Diastolic <80 mmHg
-- **Color:** Amber (`from-amber-500 to-amber-600`)
+- **Logic:** AND (both conditions must be met)
+- **Color:** Amber (`text-amber-700`, `bg-amber-50`)
 - **Description:** Lifestyle modifications recommended
+- **Risk Level:** Risk of developing hypertension
 - **Medical Note:** Previously called "prehypertension"
 
 ### 5. **Normal Blood Pressure** ✅
 - **Range:** Systolic <120 AND Diastolic <80 mmHg
-- **Color:** Emerald Green (`from-emerald-500 to-emerald-600`)
-- **Description:** Optimal blood pressure range
-- **Medical Note:** Lowest risk of cardiovascular disease
+- **Logic:** AND (both conditions must be met)
+- **Color:** Emerald Green (`text-emerald-700`, `bg-emerald-50`)
+- **Description:** Optimal cardiovascular health - Maintain healthy lifestyle
+- **Risk Level:** Lowest risk of cardiovascular disease
+- **Medical Note:** Target range for most adults
 
 ### 6. **Low Blood Pressure (Hypotension)**
 - **Range:** Systolic <90 OR Diastolic <60 mmHg
-- **Color:** Blue (`from-blue-500 to-blue-600`)
-- **Description:** Monitor for symptoms
-- **Medical Note:** Only problematic if symptoms are present
+- **Logic:** OR (either condition qualifies)
+- **Color:** Blue (`text-blue-700`, `bg-blue-50`)
+- **Description:** Investigate underlying causes if symptomatic
+- **Medical Note:** May cause dizziness, fainting, or fatigue if severe
 
 ## Key Changes from Previous System
 
@@ -86,14 +97,14 @@ All classifications are based on:
 
 ## Reference Ranges Quick Guide
 
-```
-Crisis:       ≥180/120 mmHg  🔴 Emergency
-Stage 2:      ≥140/90 mmHg   🔴 High Risk
-Stage 1:      130-139/80-89  🟠 Moderate Risk
-Elevated:     120-129/<80    🟡 Low Risk
-Normal:       <120/<80       🟢 Optimal
-Low:          <90/<60        🔵 Monitor
-```
+| Category | Systolic | Diastolic | Logic | Action |
+|----------|----------|-----------|-------|--------|
+| 🚨 **Hypertensive Crisis** | ≥180 | ≥120 | OR | Call 911 immediately |
+| 🔴 **Stage 2 Hypertension** | 140-179 | 90-109 | OR | Medication + lifestyle changes |
+| 🟠 **Stage 1 Hypertension** | 130-139 | 80-89 | OR | Lifestyle changes + possible medication |
+| 🟡 **Elevated** | 120-129 | <80 | AND | Lifestyle modifications |
+| 🟢 **Normal** | <120 | <80 | AND | Maintain healthy lifestyle |
+| 🔵 **Low** | <90 | <60 | OR | Investigate if symptomatic |
 
 ## Usage in Code
 
@@ -119,13 +130,25 @@ const assessment = getBloodPressureAssessment(systolic, diastolic);
 
 ## Testing Recommendations
 
-Test with these sample readings:
-- **Crisis:** 185/125 → "Hypertensive Crisis"
-- **Stage 2:** 145/95 → "Stage 2 Hypertension"
-- **Stage 1:** 133/83 → "Stage 1 Hypertension"
-- **Elevated:** 125/75 → "Elevated"
-- **Normal:** 115/75 → "Normal"
-- **Low:** 85/55 → "Low"
+### Critical Boundary Tests:
+| Reading | Expected Result | Reason |
+|---------|----------------|---------|
+| 185/125 | 🚨 Hypertensive Crisis | Both values meet crisis criteria |
+| 180/119 | 🔴 Stage 2 Hypertension | Systolic at crisis boundary, diastolic just below |
+| 160/125 | 🚨 Hypertensive Crisis | Diastolic ≥120 triggers crisis |
+| 175/105 | 🔴 Stage 2 Hypertension | Both in Stage 2 range |
+| 140/85 | 🔴 Stage 2 Hypertension | Systolic meets Stage 2 |
+| 135/90 | 🔴 Stage 2 Hypertension | Diastolic meets Stage 2 |
+| 139/89 | 🟠 Stage 1 Hypertension | Both in Stage 1 range |
+| 130/75 | 🟠 Stage 1 Hypertension | Systolic meets Stage 1 |
+| 125/80 | 🟠 Stage 1 Hypertension | Diastolic meets Stage 1 |
+| 120/80 | 🟠 Stage 1 Hypertension | Diastolic = 80 triggers Stage 1 |
+| 125/75 | 🟡 Elevated | Systolic 120-129 AND diastolic <80 |
+| 120/79 | 🟡 Elevated | Systolic 120-129 AND diastolic <80 |
+| 119/79 | 🟢 Normal | Both <120 AND <80 |
+| 115/75 | 🟢 Normal | Both <120 AND <80 |
+| 85/55 | 🔵 Low | Both meet low criteria |
+| 95/58 | 🔵 Low | Diastolic <60 triggers low |
 
 ## Sources
 

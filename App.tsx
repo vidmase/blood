@@ -10,7 +10,6 @@ import { EditReadingModal } from './components/EditReadingModal';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal';
 import { PinVerificationModal } from './components/PinVerificationModal';
 import { AddReadingModal } from './components/AddReadingModal';
-import { AnalysisChart } from './components/AnalysisChart';
 import { AnalysisSummary } from './components/AnalysisSummary';
 import { DateFilter } from './components/DateFilter';
 import { ReportsDashboard } from './components/ReportsDashboard';
@@ -20,6 +19,9 @@ import { ExportModal } from './components/ExportModal';
 import { SettingsModal } from './components/SettingsModal';
 import { CameraCapture } from './components/CameraCapture';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { HealthScoreDashboard } from './components/HealthScoreDashboard';
+import { QuickStatsWidget } from './components/QuickStatsWidget';
+import { GoalsProgress } from './components/GoalsProgress';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { UserSettingsProvider } from './context/UserSettingsContext';
 import { extractDataFromImage, analyzeReadings, getHealthInsights } from './services/geminiService';
@@ -796,17 +798,14 @@ const MainApp: React.FC = () => {
 
             <BloodPressureTrends readings={filteredReadings} />
 
-            <div className="bg-[var(--c-surface)] p-6 xl:p-8 2xl:p-10 rounded-2xl shadow-lg shadow-indigo-100/50 animate-fadeInUp border border-slate-100/50">
-              <h2 className="text-2xl xl:text-3xl 2xl:text-4xl font-bold text-[var(--c-text-primary)] mb-6 xl:mb-8 flex items-center gap-3">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 xl:h-8 xl:w-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                {t('chart.title')}
-              </h2>
-              <AnalysisChart data={filteredReadings} totalReadings={readings.length} />
-            </div>
-
             <ReportsDashboard readings={filteredReadings} startDate={startDate} endDate={endDate} />
+
+            {/* New Premium Components - 3 Column Grid on Large Screens */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
+              <HealthScoreDashboard readings={readings} />
+              <QuickStatsWidget readings={readings} />
+              <GoalsProgress readings={readings} />
+            </div>
             
             </div>
           </div>

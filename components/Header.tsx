@@ -117,14 +117,26 @@ export const Header: React.FC<HeaderProps> = ({ userName, onOpenSettings, onAnal
               </div>
             </div>
             
-            {/* Bottom Row - Mobile Mini Gauges */}
+            {/* Bottom Row - Mobile Mini Gauges and Last Reading Time */}
             {readings.length > 0 && (
-              <div className="flex items-center justify-center gap-3 sm:gap-4 px-2 py-2 bg-gradient-to-r from-slate-50 to-indigo-50/30 rounded-xl border border-slate-200/60">
-                <MobileGauge value={readings[0].systolic} label="SYS" color="#ef4444" max={200} />
-                <div className="text-lg font-bold text-slate-300">/</div>
-                <MobileGauge value={readings[0].diastolic} label="DIA" color="#3b82f6" max={120} />
-                <div className="w-px h-8 bg-slate-200"></div>
-                <MobileGauge value={readings[0].pulse} label="HR" color="#10b981" max={120} />
+              <div className="space-y-2">
+                <div className="flex items-center justify-center gap-3 sm:gap-4 px-2 py-2 bg-gradient-to-r from-slate-50 to-indigo-50/30 rounded-xl border border-slate-200/60">
+                  <MobileGauge value={readings[0].systolic} label="SYS" color="#ef4444" max={200} />
+                  <div className="text-lg font-bold text-slate-300">/</div>
+                  <MobileGauge value={readings[0].diastolic} label="DIA" color="#3b82f6" max={120} />
+                  <div className="w-px h-8 bg-slate-200"></div>
+                  <MobileGauge value={readings[0].pulse} label="HR" color="#10b981" max={120} />
+                  <div className="w-px h-8 bg-slate-200"></div>
+                  {/* Last Reading Time */}
+                  <div className="flex flex-col items-center">
+                    <div className="text-xs font-bold text-slate-800">
+                      {new Date(readings[0].date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </div>
+                    <div className="text-xs font-semibold text-slate-600 mt-0.5">
+                      {new Date(readings[0].date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
