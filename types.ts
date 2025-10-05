@@ -62,6 +62,17 @@ export interface AgeBasedNorms {
   ageRange?: string;
 }
 
+export interface GoogleCalendarSync {
+  enabled: boolean;
+  accessToken?: string;
+  refreshToken?: string;
+  expiresAt?: number;
+  calendarId?: string;
+  lastSyncedAt?: string;
+  autoSync?: boolean;
+  syncedReadingIds?: string[];
+}
+
 export interface AppSettings {
   theme: 'light' | 'dark';
   goals: {
@@ -71,4 +82,5 @@ export interface AppSettings {
   // Whether to show age-based assessment labels alongside medical standard categories
   // Optional to avoid breaking existing persisted settings
   useAgeBasedAssessment?: boolean;
+  googleCalendarSync?: GoogleCalendarSync;
 }

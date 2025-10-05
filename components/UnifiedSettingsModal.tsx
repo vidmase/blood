@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useUserSettings } from '../context/UserSettingsContext';
 import { useLocalization, languages } from '../context/LocalizationContext';
-import type { UserProfile, AppSettings } from '../types';
+import type { UserProfile, AppSettings, BloodPressureReading } from '../types';
+
+// Lazy load the Calendar Sync component
+const CalendarSyncSettings = lazy(() => import('./CalendarSyncSettings').then(m => ({ default: m.CalendarSyncSettings })));
 
 interface UnifiedSettingsModalProps {
   isOpen: boolean;
@@ -11,9 +14,10 @@ interface UnifiedSettingsModalProps {
   onClearData: () => void;
   currentProfile: UserProfile;
   currentSettings: AppSettings;
+  readings?: BloodPressureReading[];
 }
 
-type TabType = 'profile' | 'account' | 'preferences' | 'targets' | 'data';
+type TabType = 'profile' | 'account' | 'preferences' | 'targets' | 'sync' | 'data';
 
 export const UnifiedSettingsModal: React.FC<UnifiedSettingsModalProps> = ({
   isOpen,
@@ -22,6 +26,7 @@ export const UnifiedSettingsModal: React.FC<UnifiedSettingsModalProps> = ({
   onClearData,
   currentProfile,
   currentSettings,
+  readings = [],
 }) => {
   const { t, language, setLanguage } = useLocalization();
   const { user, signOut, updateProfile, loading } = useAuth();
@@ -117,6 +122,15 @@ export const UnifiedSettingsModal: React.FC<UnifiedSettingsModalProps> = ({
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+    },
+    {
+      id: 'sync',
+      label: 'Calendar Sync',
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       ),
     },
@@ -684,6 +698,29 @@ export const UnifiedSettingsModal: React.FC<UnifiedSettingsModalProps> = ({
                   </div>
                 </form>
               </div>
+            )}
+
+            {/* Calendar Sync Tab */}
+            {activeTab === 'sync' && (
+              <Suspense 
+                fallback={
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
+                  </div>
+                }
+              >
+                <CalendarSyncSettings
+                  readings={readings}
+                  currentSync={settings.googleCalendarSync}
+                  onSyncUpdate={(config) => {
+                    const updatedSettings = { ...settings, googleCalendarSync: config };
+                    setSettings(updatedSettings);
+                    onSave(profile, updatedSettings);
+                  }}
+                  onSuccess={(message) => setSuccess(message)}
+                  onError={(message) => setError(message)}
+                />
+              </Suspense>
             )}
 
             {/* Data Tab */}

@@ -60,10 +60,7 @@ const ModernTrendIndicator: React.FC<{
 };
 
 export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readings }) => {
-  const { t } = useLocalization();
-  const [viewMode, setViewMode] = useState<'cards' | 'compact'>('cards');
-  
-  // Safety check for readings
+  // Safety check for readings - MUST be before any hooks
   if (!readings || readings.length === 0) {
     return (
       <div className="bg-gradient-to-br from-white via-indigo-50/20 to-purple-50/30 rounded-3xl shadow-2xl border border-indigo-200/40 p-8 text-center">
@@ -77,6 +74,9 @@ export const BloodPressureTrends: React.FC<BloodPressureTrendsProps> = ({ readin
       </div>
     );
   }
+
+  const { t } = useLocalization();
+  const [viewMode, setViewMode] = useState<'cards' | 'compact'>('cards');
 
   // Prepare data for charts with safety checks
   const chartData = useMemo(() => {

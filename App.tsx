@@ -114,6 +114,57 @@ const MainApp: React.FC = () => {
     document.documentElement.setAttribute('data-theme', settings.theme);
   }, [settings]);
 
+  // Handle Google OAuth callback
+  useEffect(() => {
+    const handleOAuthCallback = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      const state = urlParams.get('state');
+      
+      if (code && state) {
+        console.log('Processing OAuth callback...');
+        try {
+          const { googleCalendarSyncService } = await import('./services/googleCalendarSyncService');
+          const syncConfig = await googleCalendarSyncService.handleOAuthCallback(code, state);
+          
+          console.log('OAuth successful, saving config:', syncConfig);
+          
+          // Save the sync configuration to settings using functional update
+          setSettings(prevSettings => {
+            const updatedSettings = {
+              ...prevSettings,
+              googleCalendarSync: {
+                ...syncConfig,
+                enabled: true,
+              },
+            };
+            localStorage.setItem('appSettings', JSON.stringify(updatedSettings));
+            console.log('Settings saved:', updatedSettings);
+            return updatedSettings;
+          });
+          
+          // Clear the URL parameters
+          window.history.replaceState({}, document.title, window.location.pathname);
+          
+          // Show success message
+          setTimeout(() => {
+            setIsSettingsModalOpen(true);
+          }, 100);
+        } catch (err: any) {
+          console.error('OAuth callback error:', err);
+          // Only show error if it's not a state mismatch (which we now handle gracefully)
+          if (!err.message?.includes('OAuth state')) {
+            setError(err.message || 'Failed to connect to Google Calendar');
+          }
+          // Clear URL params even on error
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      }
+    };
+
+    handleOAuthCallback();
+  }, []);
+
   // Load readings from database when user is authenticated
   useEffect(() => {
     const loadReadings = async () => {
@@ -229,6 +280,30 @@ const MainApp: React.FC = () => {
           
           const savedReadings = await bloodPressureService.createReadings(readingsData);
           setReadings(prevReadings => [...prevReadings, ...savedReadings].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+          
+          // Auto-sync to Google Calendar if enabled
+          if (settings.googleCalendarSync?.autoSync && settings.googleCalendarSync?.accessToken && savedReadings.length > 0) {
+            try {
+              console.log(`Auto-syncing ${savedReadings.length} new reading(s) to Google Calendar...`);
+              const { googleCalendarSyncService } = await import('./services/googleCalendarSyncService');
+              const updatedConfig = await googleCalendarSyncService.syncReadings(
+                savedReadings,
+                settings.googleCalendarSync,
+                () => {} // No progress callback for background sync
+              );
+              
+              // Update settings with new sync config
+              setSettings(prev => ({
+                ...prev,
+                googleCalendarSync: updatedConfig,
+              }));
+              
+              console.log('Readings auto-synced successfully!');
+            } catch (syncErr) {
+              console.error('Auto-sync failed:', syncErr);
+              // Don't show error to user for background sync failures
+            }
+          }
           
           // Automatically switch to table view to show the new records
           setCurrentView('table');
@@ -583,6 +658,30 @@ const MainApp: React.FC = () => {
         [newReading, ...prevReadings].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       );
 
+      // Auto-sync to Google Calendar if enabled
+      if (settings.googleCalendarSync?.autoSync && settings.googleCalendarSync?.accessToken) {
+        try {
+          console.log('Auto-syncing new reading to Google Calendar...');
+          const { googleCalendarSyncService } = await import('./services/googleCalendarSyncService');
+          const updatedConfig = await googleCalendarSyncService.syncReadings(
+            [newReading],
+            settings.googleCalendarSync,
+            () => {} // No progress callback for single reading
+          );
+          
+          // Update settings with new sync config
+          setSettings(prev => ({
+            ...prev,
+            googleCalendarSync: updatedConfig,
+          }));
+          
+          console.log('Reading auto-synced successfully!');
+        } catch (syncErr) {
+          console.error('Auto-sync failed:', syncErr);
+          // Don't show error to user for background sync failures
+        }
+      }
+
       setIsAddModalOpen(false);
       // Automatically switch to table view to show the new record
       setCurrentView('table');
@@ -904,6 +1003,7 @@ const MainApp: React.FC = () => {
         onClearData={handleClearData}
         currentProfile={profile}
         currentSettings={settings}
+        readings={readings}
       />
       {isCameraOpen && (
         <CameraCapture
