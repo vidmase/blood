@@ -16,12 +16,13 @@ import { ReportsDashboard } from './components/ReportsDashboard';
 import { HealthInsights } from './components/HealthInsights';
 import { BloodPressureTrends } from './components/BloodPressureTrends';
 import { ExportModal } from './components/ExportModal';
-import { SettingsModal } from './components/SettingsModal';
+import { UnifiedSettingsModal } from './components/UnifiedSettingsModal';
 import { CameraCapture } from './components/CameraCapture';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { HealthScoreDashboard } from './components/HealthScoreDashboard';
 import { QuickStatsWidget } from './components/QuickStatsWidget';
 import { GoalsProgress } from './components/GoalsProgress';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { UserSettingsProvider } from './context/UserSettingsContext';
 import { extractDataFromImage, analyzeReadings, getHealthInsights } from './services/geminiService';
@@ -631,16 +632,6 @@ const MainApp: React.FC = () => {
                     <span className="font-semibold">{t('buttons.addReading')}</span>
                   </button>
                   <button
-                    onClick={() => setIsCameraOpen(true)}
-                    className="w-full flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span className="font-semibold">{t('buttons.cameraScan')}</span>
-                  </button>
-                  <button
                     onClick={openAnalysisModal}
                     disabled={filteredReadings.length < 2 || isAnalyzing}
                     className="w-full flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
@@ -796,15 +787,25 @@ const MainApp: React.FC = () => {
               )}
             </div>
 
-            <BloodPressureTrends readings={filteredReadings} />
+            <ErrorBoundary>
+              <BloodPressureTrends readings={filteredReadings} />
+            </ErrorBoundary>
 
-            <ReportsDashboard readings={filteredReadings} startDate={startDate} endDate={endDate} />
+            <ErrorBoundary>
+              <ReportsDashboard readings={filteredReadings} startDate={startDate} endDate={endDate} />
+            </ErrorBoundary>
 
             {/* New Premium Components - 3 Column Grid on Large Screens */}
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
-              <HealthScoreDashboard readings={readings} />
-              <QuickStatsWidget readings={readings} />
-              <GoalsProgress readings={readings} />
+              <ErrorBoundary>
+                <HealthScoreDashboard readings={readings} />
+              </ErrorBoundary>
+              <ErrorBoundary>
+                <QuickStatsWidget readings={readings} />
+              </ErrorBoundary>
+              <ErrorBoundary>
+                <GoalsProgress readings={readings} />
+              </ErrorBoundary>
             </div>
             
             </div>
@@ -896,7 +897,7 @@ const MainApp: React.FC = () => {
           </div>
         </div>
       )}
-      <SettingsModal
+      <UnifiedSettingsModal
         isOpen={isSettingsModalOpen}
         onClose={() => setIsSettingsModalOpen(false)}
         onSave={handleSaveSettings}

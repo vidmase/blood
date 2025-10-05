@@ -202,7 +202,7 @@ const UploadModal: React.FC<FileUploadProps & { isOpen: boolean; onClose: () => 
               <button
                 onClick={() => document.getElementById('file-upload')?.click()}
                 disabled={isLoading}
-                className="w-full flex-1 flex items-center justify-center gap-2 sm:gap-3 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200 font-bold py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl border-2 border-gray-200 dark:border-gray-600 active:border-indigo-300 dark:active:border-indigo-500 active:bg-gray-50 dark:active:bg-slate-600 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 shadow-md text-sm sm:text-base"
+                className="w-full flex-1 md:w-full flex items-center justify-center gap-2 sm:gap-3 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200 font-bold py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl border-2 border-gray-200 dark:border-gray-600 active:border-indigo-300 dark:active:border-indigo-500 active:bg-gray-50 dark:active:bg-slate-600 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 shadow-md text-sm sm:text-base"
               >
                 {isLoading ? (
                   <>
@@ -223,7 +223,7 @@ const UploadModal: React.FC<FileUploadProps & { isOpen: boolean; onClose: () => 
                 }}
                 disabled={isLoading}
                 aria-label={t('upload.button.camera')}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 sm:gap-3 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200 font-bold py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl border-2 border-gray-200 dark:border-gray-600 active:border-indigo-300 dark:active:border-indigo-500 active:bg-gray-50 dark:active:bg-slate-600 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 shadow-md text-sm sm:text-base"
+                className="w-full sm:w-auto md:hidden flex items-center justify-center gap-2 sm:gap-3 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200 font-bold py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl border-2 border-gray-200 dark:border-gray-600 active:border-indigo-300 dark:active:border-indigo-500 active:bg-gray-50 dark:active:bg-slate-600 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 shadow-md text-sm sm:text-base"
               >
                 <CameraIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>{t('upload.button.camera')}</span>

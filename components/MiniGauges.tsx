@@ -96,7 +96,12 @@ export const MiniGauges: React.FC<MiniGaugesProps> = ({ readings }) => {
       />
       <div className="ml-2 text-xs text-slate-500 text-center">
         <div className="font-medium text-slate-600">Latest</div>
-        <div className="text-xs">{new Date(latestReading.date).toLocaleDateString()}</div>
+        <div className="text-xs font-semibold text-slate-700">
+          {new Date(latestReading.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+        </div>
+        <div className="text-xs text-slate-500">
+          {new Date(latestReading.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+        </div>
       </div>
     </div>
   );
