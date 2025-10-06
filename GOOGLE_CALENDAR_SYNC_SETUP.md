@@ -161,6 +161,23 @@ Events are automatically color-coded based on health status:
 
 **Solution**: Ensure the redirect URI in your `.env.local` matches exactly with the one configured in Google Cloud Console (including http/https and trailing slashes).
 
+### Vercel Deployment OAuth Issues
+
+**Common Issues**:
+1. **"redirect_uri_mismatch" Error**: 
+   - Ensure your Vercel app URL is added to Google Cloud Console authorized redirect URIs
+   - Check that both `https://your-app.vercel.app` and `https://your-app.vercel.app/` are added
+   
+2. **Environment Variables Not Loading**:
+   - Verify all environment variables are set in Vercel dashboard
+   - Redeploy the application after adding/updating environment variables
+   - Check that variable names start with `VITE_` for client-side access
+   
+3. **OAuth Works Locally But Not on Vercel**:
+   - Double-check that Google Cloud Console has your Vercel URL in authorized redirect URIs
+   - Ensure OAuth consent screen is configured for production (not just localhost)
+   - Verify environment variables are correctly set in Vercel
+
 ### Events Not Appearing in Calendar
 
 **Possible causes**:
@@ -187,11 +204,31 @@ Events are automatically color-coded based on health status:
 - Test with test users in OAuth consent screen
 - Keep credentials in `.env.local`
 
-### Production
-- Use your production domain as redirect URI (e.g., `https://yourdomain.com`)
+### Production (Vercel Deployment)
+- Use your Vercel deployment URL as redirect URI (e.g., `https://your-app-name.vercel.app`)
 - Submit OAuth consent screen for verification if public
-- Store credentials securely (environment variables, secret manager)
+- Store credentials securely in Vercel environment variables
 - Use HTTPS only
+
+#### Vercel Environment Variables Setup
+1. Go to your Vercel project dashboard
+2. Navigate to Settings > Environment Variables
+3. Add the following variables:
+   ```
+   VITE_GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
+   VITE_GOOGLE_CLIENT_SECRET=your_client_secret
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   VITE_GEMINI_API_KEY=your_gemini_api_key
+   ```
+4. **Important**: Do NOT set `VITE_GOOGLE_REDIRECT_URI` in Vercel - the app will auto-detect the correct URL
+5. Redeploy your application after adding environment variables
+
+#### Google Cloud Console Redirect URIs
+For Vercel deployment, add these URIs to your OAuth 2.0 credentials:
+- `https://your-app-name.vercel.app`
+- `https://your-app-name.vercel.app/` (with trailing slash)
+- Keep `http://localhost:5173` for local development
 
 ## API Limits
 

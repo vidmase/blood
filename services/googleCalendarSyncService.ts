@@ -3,7 +3,26 @@ import type { BloodPressureReading, GoogleCalendarSync } from '../types';
 // OAuth 2.0 configuration - should be set in environment variables
 const getGoogleClientId = () => import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 const getGoogleClientSecret = () => import.meta.env.VITE_GOOGLE_CLIENT_SECRET || '';
-const getRedirectUri = () => import.meta.env.VITE_GOOGLE_REDIRECT_URI || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173');
+const getRedirectUri = () => {
+  // Use environment variable if set, otherwise determine based on current environment
+  if (import.meta.env.VITE_GOOGLE_REDIRECT_URI) {
+    return import.meta.env.VITE_GOOGLE_REDIRECT_URI;
+  }
+  
+  // Auto-detect environment
+  if (typeof window !== 'undefined') {
+    const origin = window.location.origin;
+    // For Vercel deployments, use the current origin
+    if (origin.includes('vercel.app') || origin.includes('your-domain.com')) {
+      return origin;
+    }
+    // For local development
+    return 'http://localhost:5173';
+  }
+  
+  // Fallback for server-side rendering
+  return 'http://localhost:5173';
+};
 
 // Google Calendar API endpoints
 const CALENDAR_API_BASE = 'https://www.googleapis.com/calendar/v3';
@@ -310,18 +329,120 @@ class GoogleCalendarSyncService {
     }
   }
   
-  // Sync multiple readings
+  // Delete a reading's calendar event by reading ID
+  async deleteReadingEvent(readingId: string | number, syncConfig: GoogleCalendarSync): Promise<GoogleCalendarSync> {
+    const accessToken = await this.ensureValidToken(syncConfig);
+    const calendarId = syncConfig.calendarId || 'primary';
+    
+    // Search for the event by reading ID in private extended properties
+    const searchQuery = encodeURIComponent(`bpReadingId:${readingId}`);
+    const searchUrl = `${CALENDAR_API_BASE}/calendars/${calendarId}/events?privateExtendedProperty=${searchQuery}`;
+    
+    const searchResponse = await fetch(searchUrl, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+    
+    if (!searchResponse.ok) {
+      throw new Error('Failed to search for calendar event');
+    }
+    
+    const searchData = await searchResponse.json();
+    
+    // If event found, delete it
+    if (searchData.items && searchData.items.length > 0) {
+      const eventId = searchData.items[0].id;
+      await this.deleteEvent(eventId, syncConfig);
+      
+      // Remove from synced reading IDs
+      const updatedSyncedIds = (syncConfig.syncedReadingIds || []).filter(id => id !== String(readingId));
+      
+      return {
+        ...syncConfig,
+        syncedReadingIds: updatedSyncedIds,
+        lastSyncedAt: new Date().toISOString(),
+      };
+    }
+    
+    // Event not found, just return the config unchanged
+    return syncConfig;
+  }
+  
+  // Check if a reading already exists in calendar
+  async checkReadingExists(
+    readingId: string | number,
+    syncConfig: GoogleCalendarSync
+  ): Promise<boolean> {
+    try {
+      const accessToken = await this.ensureValidToken(syncConfig);
+      const calendarId = syncConfig.calendarId || 'primary';
+      
+      // Search for the event by reading ID in private extended properties
+      const searchQuery = encodeURIComponent(`bpReadingId:${readingId}`);
+      const searchUrl = `${CALENDAR_API_BASE}/calendars/${calendarId}/events?privateExtendedProperty=${searchQuery}`;
+      
+      const searchResponse = await fetch(searchUrl, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+      
+      if (!searchResponse.ok) {
+        console.warn('Failed to check for existing calendar event');
+        return false;
+      }
+      
+      const searchData = await searchResponse.json();
+      return searchData.items && searchData.items.length > 0;
+    } catch (error) {
+      console.warn('Error checking for existing calendar event:', error);
+      return false;
+    }
+  }
+
+  // Sync multiple readings with duplicate prevention
   async syncReadings(
     readings: BloodPressureReading[],
     syncConfig: GoogleCalendarSync,
     onProgress?: (current: number, total: number) => void
   ): Promise<GoogleCalendarSync> {
     const syncedIds = new Set(syncConfig.syncedReadingIds || []);
-    const unsyncedReadings = readings.filter(r => !syncedIds.has(String(r.id)));
+    
+    // First, check which readings actually exist in the calendar
+    // This prevents duplicates when sync tracking is lost
+    let actuallySyncedIds = new Set<string>();
+    
+    console.log('Checking for existing calendar events to prevent duplicates...');
+    for (const reading of readings) {
+      const readingIdStr = String(reading.id);
+      if (syncedIds.has(readingIdStr)) {
+        // Already marked as synced, but verify it exists in calendar
+        const existsInCalendar = await this.checkReadingExists(reading.id, syncConfig);
+        if (existsInCalendar) {
+          actuallySyncedIds.add(readingIdStr);
+        }
+      }
+    }
+    
+    // Find readings that need to be synced (not in our tracked list AND not in calendar)
+    const readingsToCheck = readings.filter(r => !syncedIds.has(String(r.id)));
+    for (const reading of readingsToCheck) {
+      const existsInCalendar = await this.checkReadingExists(reading.id, syncConfig);
+      if (existsInCalendar) {
+        actuallySyncedIds.add(String(reading.id));
+      }
+    }
+    
+    // Now find truly unsynced readings
+    const unsyncedReadings = readings.filter(r => !actuallySyncedIds.has(String(r.id)));
+    
+    console.log(`Found ${actuallySyncedIds.size} already synced readings, ${unsyncedReadings.length} to sync`);
     
     if (unsyncedReadings.length === 0) {
       return {
         ...syncConfig,
+        syncedReadingIds: Array.from(actuallySyncedIds),
         lastSyncedAt: new Date().toISOString(),
       };
     }
@@ -330,7 +451,7 @@ class GoogleCalendarSyncService {
     for (const reading of unsyncedReadings) {
       try {
         await this.createEvent(reading, syncConfig);
-        syncedIds.add(String(reading.id));
+        actuallySyncedIds.add(String(reading.id));
         synced++;
         
         if (onProgress) {
@@ -344,7 +465,7 @@ class GoogleCalendarSyncService {
     
     return {
       ...syncConfig,
-      syncedReadingIds: Array.from(syncedIds),
+      syncedReadingIds: Array.from(actuallySyncedIds),
       lastSyncedAt: new Date().toISOString(),
     };
   }
@@ -411,6 +532,42 @@ class GoogleCalendarSyncService {
   // Set sync config (for loading from storage)
   setSyncConfig(config: GoogleCalendarSync | null): void {
     this.syncConfig = config;
+  }
+
+  // Rebuild sync tracking from existing calendar events
+  async rebuildSyncTracking(
+    readings: BloodPressureReading[],
+    syncConfig: GoogleCalendarSync
+  ): Promise<GoogleCalendarSync> {
+    console.log('Rebuilding sync tracking from existing calendar events...');
+    
+    const syncedReadingIds: string[] = [];
+    let processed = 0;
+    
+    for (const reading of readings) {
+      try {
+        const exists = await this.checkReadingExists(reading.id, syncConfig);
+        if (exists) {
+          syncedReadingIds.push(String(reading.id));
+        }
+        processed++;
+        
+        // Log progress every 10 readings
+        if (processed % 10 === 0) {
+          console.log(`Checked ${processed}/${readings.length} readings...`);
+        }
+      } catch (error) {
+        console.error(`Error checking reading ${reading.id}:`, error);
+      }
+    }
+    
+    console.log(`Rebuilt sync tracking: ${syncedReadingIds.length}/${readings.length} readings found in calendar`);
+    
+    return {
+      ...syncConfig,
+      syncedReadingIds,
+      lastSyncedAt: new Date().toISOString(),
+    };
   }
 }
 

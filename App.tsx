@@ -625,7 +625,31 @@ const MainApp: React.FC = () => {
 
     setIsUpdating(true);
     try {
+      // Delete from database
       await bloodPressureService.deleteReading(selectedReading.id.toString());
+
+      // Delete from Google Calendar if auto-sync is enabled
+      if (settings.googleCalendarSync?.autoSync && settings.googleCalendarSync?.accessToken) {
+        try {
+          console.log('Deleting reading from Google Calendar...');
+          const { googleCalendarSyncService } = await import('./services/googleCalendarSyncService');
+          const updatedConfig = await googleCalendarSyncService.deleteReadingEvent(
+            selectedReading.id,
+            settings.googleCalendarSync
+          );
+          
+          // Update settings with new sync config
+          setSettings(prev => ({
+            ...prev,
+            googleCalendarSync: updatedConfig,
+          }));
+          
+          console.log('Reading deleted from Google Calendar successfully!');
+        } catch (syncErr) {
+          console.error('Failed to delete from Google Calendar:', syncErr);
+          // Don't fail the deletion if calendar sync fails
+        }
+      }
 
       // Remove the reading from the list
       setReadings(prevReadings => 

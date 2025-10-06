@@ -143,6 +143,31 @@ export const CalendarSyncSettings: React.FC<CalendarSyncSettingsProps> = ({
     }
   };
 
+  const handleRebuildSyncTracking = async () => {
+    if (!currentSync?.accessToken) {
+      onError('Please connect to Google Calendar first');
+      return;
+    }
+
+    setSyncStatus('syncing');
+    
+    try {
+      const { googleCalendarSyncService } = await import('../services/googleCalendarSyncService');
+      
+      const updatedConfig = await googleCalendarSyncService.rebuildSyncTracking(
+        readings,
+        currentSync
+      );
+      
+      onSyncUpdate(updatedConfig);
+      setSyncStatus('idle');
+      onSuccess(`Sync tracking rebuilt! Found ${updatedConfig.syncedReadingIds?.length || 0} existing calendar events.`);
+    } catch (err: any) {
+      onError(err.message || 'Failed to rebuild sync tracking');
+      setSyncStatus('idle');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -320,23 +345,43 @@ export const CalendarSyncSettings: React.FC<CalendarSyncSettingsProps> = ({
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+          <div className="flex flex-col gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+            {/* Primary Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={handleSyncNow}
+                disabled={syncStatus === 'syncing'}
+                className="flex-1 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 transition-all shadow-lg flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                {syncStatus === 'syncing' ? 'Syncing...' : 'Sync Now'}
+              </button>
+              <button
+                onClick={handleDisconnect}
+                className="px-6 py-2.5 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all"
+              >
+                Disconnect
+              </button>
+            </div>
+            
+            {/* Rebuild Sync Tracking Button */}
             <button
-              onClick={handleSyncNow}
+              onClick={handleRebuildSyncTracking}
               disabled={syncStatus === 'syncing'}
-              className="flex-1 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 transition-all shadow-lg flex items-center justify-center gap-2"
+              className="w-full px-4 py-2 text-sm bg-amber-100 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200 rounded-lg hover:bg-amber-200 dark:hover:bg-amber-900/40 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
-              {syncStatus === 'syncing' ? 'Syncing...' : 'Sync Now'}
+              {syncStatus === 'syncing' ? 'Rebuilding...' : 'Rebuild Sync Tracking'}
             </button>
-            <button
-              onClick={handleDisconnect}
-              className="px-6 py-2.5 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all"
-            >
-              Disconnect
-            </button>
+            
+            {/* Help Text */}
+            <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
+              Use "Rebuild Sync Tracking" if sync counts seem incorrect after reconnecting
+            </p>
           </div>
         </div>
       )}
