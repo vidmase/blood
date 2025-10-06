@@ -46,6 +46,50 @@ const ErrorDisplay: React.FC<{ message: string | null, onClose: () => void }> = 
     );
 };
 
+const SuccessDisplay: React.FC<{ 
+    message: string | null, 
+    onClose: () => void, 
+    actionButton?: { 
+        text: string; 
+        onClick: () => void; 
+        loading?: boolean;
+    } 
+}> = ({ message, onClose, actionButton }) => {
+    const { t } = useLocalization();
+    if (!message) return null;
+    return (
+        <div className="fixed bottom-4 right-4 max-w-sm w-full bg-green-600 border-l-4 border-green-700 text-white p-4 rounded-lg shadow-lg z-50 animate-fadeInUp" role="alert">
+            <div className="flex justify-between items-start">
+                <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p className="font-bold">Success!</p>
+                    </div>
+                    <p className="text-sm whitespace-pre-wrap">{message}</p>
+                    {actionButton && (
+                        <button
+                            onClick={actionButton.onClick}
+                            disabled={actionButton.loading}
+                            className="mt-3 px-3 py-1.5 bg-white text-green-600 text-sm font-semibold rounded-lg hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-300 disabled:opacity-50 transition-all flex items-center gap-2"
+                        >
+                            {actionButton.loading && (
+                                <div className="animate-spin rounded-full h-3 w-3 border border-green-600 border-t-transparent"></div>
+                            )}
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            {actionButton.text}
+                        </button>
+                    )}
+                </div>
+                <button onClick={onClose} className="ml-4 p-1 text-white hover:bg-green-700 rounded-full focus:outline-none" aria-label="Close">&times;</button>
+            </div>
+        </div>
+    );
+};
+
 const DEFAULT_PROFILE: UserProfile = { name: '', dob: '' };
 const DEFAULT_SETTINGS: AppSettings = {
   theme: 'light',
@@ -58,6 +102,8 @@ const MainApp: React.FC = () => {
   const [readings, setReadings] = useState<BloodPressureReading[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [successAction, setSuccessAction] = useState<{ text: string; onClick: () => void; loading?: boolean } | null>(null);
   const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [startDate, setStartDate] = useState<string>('');
@@ -301,8 +347,22 @@ const MainApp: React.FC = () => {
               console.log('Readings auto-synced successfully!');
             } catch (syncErr) {
               console.error('Auto-sync failed:', syncErr);
-              // Don't show error to user for background sync failures
+              // Show success message with manual sync option for bulk upload
+              setSuccess(`${newReadings.length} reading(s) added successfully!`);
+              setSuccessAction({
+                text: 'Sync to Google Calendar',
+                onClick: () => handleBulkManualSync(savedReadings),
+                loading: false
+              });
             }
+          } else if (savedReadings.length > 0) {
+            // Show success message with manual sync option for bulk upload
+            setSuccess(`${newReadings.length} reading(s) added successfully!`);
+            setSuccessAction({
+              text: 'Sync to Google Calendar',
+              onClick: () => handleBulkManualSync(savedReadings),
+              loading: false
+            });
           }
           
           // Automatically switch to table view to show the new records
@@ -700,10 +760,28 @@ const MainApp: React.FC = () => {
           }));
           
           console.log('Reading auto-synced successfully!');
+          
+          // Show success message with auto-sync
+          setSuccess('Reading added and synced to Google Calendar!');
+          setSuccessAction(null);
         } catch (syncErr) {
           console.error('Auto-sync failed:', syncErr);
-          // Don't show error to user for background sync failures
+          // Show success message with manual sync option
+          setSuccess('Reading added successfully!');
+          setSuccessAction({
+            text: 'Sync to Google Calendar',
+            onClick: () => handleManualSync(newReading),
+            loading: false
+          });
         }
+      } else {
+        // Show success message with manual sync option
+        setSuccess('Reading added successfully!');
+        setSuccessAction({
+          text: 'Sync to Google Calendar',
+          onClick: () => handleManualSync(newReading),
+          loading: false
+        });
       }
 
       setIsAddModalOpen(false);
@@ -714,6 +792,82 @@ const MainApp: React.FC = () => {
       setError('Failed to add reading. Please try again.');
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleManualSync = async (reading: BloodPressureReading) => {
+    if (!settings.googleCalendarSync?.accessToken) {
+      setError('Please connect to Google Calendar first in Settings');
+      return;
+    }
+
+    // Update the action button to show loading
+    setSuccessAction(prev => prev ? { ...prev, loading: true } : null);
+
+    try {
+      const { googleCalendarSyncService } = await import('./services/googleCalendarSyncService');
+      const updatedConfig = await googleCalendarSyncService.syncReadings(
+        [reading],
+        settings.googleCalendarSync,
+        () => {} // No progress callback for single reading
+      );
+      
+      // Update settings with new sync config
+      setSettings(prev => ({
+        ...prev,
+        googleCalendarSync: updatedConfig,
+      }));
+      
+      // Update success message and remove action button
+      setSuccess('Reading synced to Google Calendar successfully!');
+      setSuccessAction(null);
+    } catch (err: any) {
+      console.error('Manual sync failed:', err);
+      setError(err.message || 'Failed to sync to Google Calendar');
+      // Reset action button
+      setSuccessAction({
+        text: 'Sync to Google Calendar',
+        onClick: () => handleManualSync(reading),
+        loading: false
+      });
+    }
+  };
+
+  const handleBulkManualSync = async (readings: BloodPressureReading[]) => {
+    if (!settings.googleCalendarSync?.accessToken) {
+      setError('Please connect to Google Calendar first in Settings');
+      return;
+    }
+
+    // Update the action button to show loading
+    setSuccessAction(prev => prev ? { ...prev, loading: true } : null);
+
+    try {
+      const { googleCalendarSyncService } = await import('./services/googleCalendarSyncService');
+      const updatedConfig = await googleCalendarSyncService.syncReadings(
+        readings,
+        settings.googleCalendarSync,
+        () => {} // No progress callback for bulk sync
+      );
+      
+      // Update settings with new sync config
+      setSettings(prev => ({
+        ...prev,
+        googleCalendarSync: updatedConfig,
+      }));
+      
+      // Update success message and remove action button
+      setSuccess(`${readings.length} reading(s) synced to Google Calendar successfully!`);
+      setSuccessAction(null);
+    } catch (err: any) {
+      console.error('Bulk manual sync failed:', err);
+      setError(err.message || 'Failed to sync to Google Calendar');
+      // Reset action button
+      setSuccessAction({
+        text: 'Sync to Google Calendar',
+        onClick: () => handleBulkManualSync(readings),
+        loading: false
+      });
     }
   };
 
@@ -945,6 +1099,14 @@ const MainApp: React.FC = () => {
       />
       
       <ErrorDisplay message={error} onClose={() => setError(null)} />
+      <SuccessDisplay 
+        message={success} 
+        onClose={() => {
+          setSuccess(null);
+          setSuccessAction(null);
+        }}
+        actionButton={successAction}
+      />
       <ExportModal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
