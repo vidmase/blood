@@ -266,6 +266,51 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
   const unsyncedReadings = readings.filter(reading => !syncedReadingIds.includes(String(reading.id)));
   const syncedCount = readings.length - unsyncedReadings.length;
 
+  // Shared styling functions
+  const getStatusGradient = (level: string) => {
+    switch(level) {
+      case 'crisis': return 'from-red-700 to-red-800';
+      case 'stage2': return 'from-red-500 to-red-600';
+      case 'stage1': return 'from-orange-500 to-orange-600';
+      case 'elevated': return 'from-amber-500 to-amber-600';
+      case 'low': return 'from-blue-500 to-blue-600';
+      default: return 'from-emerald-500 to-emerald-600';
+    }
+  };
+
+  const getRowBg = (level: string) => {
+    switch(level) {
+      case 'crisis': return 'hover:bg-gradient-to-r hover:from-red-100/50 hover:to-red-50/30';
+      case 'stage2': return 'hover:bg-gradient-to-r hover:from-red-50/50 hover:to-red-50/30';
+      case 'stage1': return 'hover:bg-gradient-to-r hover:from-orange-50/50 hover:to-orange-50/30';
+      case 'elevated': return 'hover:bg-gradient-to-r hover:from-amber-50/50 hover:to-amber-50/30';
+      case 'low': return 'hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-blue-50/30';
+      default: return 'hover:bg-gradient-to-r hover:from-emerald-50/50 hover:to-emerald-50/30';
+    }
+  };
+
+  const getBorderColor = (level: string) => {
+    switch(level) {
+      case 'crisis': return 'border-red-500';
+      case 'stage2': return 'border-red-500';
+      case 'stage1': return 'border-orange-500';
+      case 'elevated': return 'border-amber-500';
+      case 'low': return 'border-blue-500';
+      default: return 'border-emerald-500';
+    }
+  };
+
+  const getStatusBg = (level: string) => {
+    switch(level) {
+      case 'crisis': return 'bg-gradient-to-br from-red-100 to-red-200/50';
+      case 'stage2': return 'bg-gradient-to-br from-red-50 to-red-100/50';
+      case 'stage1': return 'bg-gradient-to-br from-orange-50 to-orange-100/50';
+      case 'elevated': return 'bg-gradient-to-br from-amber-50 to-amber-100/50';
+      case 'low': return 'bg-gradient-to-br from-blue-50 to-blue-100/50';
+      default: return 'bg-gradient-to-br from-emerald-50 to-emerald-100/50';
+    }
+  };
+
   // Pagination logic
   const paginatedReadings = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -364,20 +409,20 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
             </div>
 
             {/* Desktop Table - Modern Design */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full min-w-[800px]">
+            <div className="hidden lg:block">
+              <table className="w-full">
                 <thead>
                   <tr className="bg-gradient-to-r from-slate-50 via-indigo-50/30 to-purple-50/30 border-b-2 border-indigo-100">
-                    <th className="px-3 lg:px-6 py-4 text-left text-xs lg:text-sm font-bold text-slate-800 uppercase tracking-wide w-[15%]">{t('table.dateTime')}</th>
-                    <th className="px-3 lg:px-6 py-4 text-center text-xs lg:text-sm font-bold text-slate-800 uppercase tracking-wide w-[20%]">{t('table.bloodPressure')}</th>
-                    <th className="px-3 lg:px-6 py-4 text-center text-xs lg:text-sm font-bold text-slate-800 uppercase tracking-wide w-[15%]">{t('table.pulse')}</th>
-                    <th className="px-3 lg:px-6 py-4 text-center text-xs lg:text-sm font-bold text-slate-800 uppercase tracking-wide w-[15%]">{t('table.assessment')}</th>
-                    <th className="px-3 lg:px-6 py-4 text-left text-xs lg:text-sm font-bold text-slate-800 uppercase tracking-wide w-[20%]">{t('table.notes')}</th>
+                    <th className="px-3 py-3 text-left text-xs font-bold text-slate-800 uppercase tracking-wide">{t('table.dateTime')}</th>
+                    <th className="px-3 py-3 text-center text-xs font-bold text-slate-800 uppercase tracking-wide">{t('table.bloodPressure')}</th>
+                    <th className="px-3 py-3 text-center text-xs font-bold text-slate-800 uppercase tracking-wide">{t('table.pulse')}</th>
+                    <th className="px-3 py-3 text-center text-xs font-bold text-slate-800 uppercase tracking-wide">{t('table.assessment')}</th>
+                    <th className="px-3 py-3 text-left text-xs font-bold text-slate-800 uppercase tracking-wide">{t('table.notes')}</th>
                     {isGoogleCalendarConnected && (
-                      <th className="px-3 lg:px-6 py-4 text-center text-xs lg:text-sm font-bold text-slate-800 uppercase tracking-wide w-[10%]">Sync Status</th>
+                      <th className="px-3 py-3 text-center text-xs font-bold text-slate-800 uppercase tracking-wide">Sync</th>
                     )}
                     {(onEditReading || onDeleteReading) && (
-                      <th className="px-3 lg:px-6 py-4 text-center text-xs lg:text-sm font-bold text-slate-800 uppercase tracking-wide w-[15%]">{t('table.actions')}</th>
+                      <th className="px-3 py-3 text-center text-xs font-bold text-slate-800 uppercase tracking-wide">{t('table.actions')}</th>
                     )}
                   </tr>
                 </thead>
@@ -386,39 +431,6 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                     const assessment = getBloodPressureAssessment(reading.systolic, reading.diastolic);
                     const systolicStatus = getStatusIndicator(reading.systolic, 'systolic');
                     const diastolicStatus = getStatusIndicator(reading.diastolic, 'diastolic');
-                    
-                    const getStatusGradient = (level: string) => {
-                      switch(level) {
-                        case 'crisis': return 'from-red-700 to-red-800';
-                        case 'stage2': return 'from-red-500 to-red-600';
-                        case 'stage1': return 'from-orange-500 to-orange-600';
-                        case 'elevated': return 'from-amber-500 to-amber-600';
-                        case 'low': return 'from-blue-500 to-blue-600';
-                        default: return 'from-emerald-500 to-emerald-600';
-                      }
-                    };
-
-                    const getRowBg = (level: string) => {
-                      switch(level) {
-                        case 'crisis': return 'hover:bg-gradient-to-r hover:from-red-100/50 hover:to-red-50/30';
-                        case 'stage2': return 'hover:bg-gradient-to-r hover:from-red-50/50 hover:to-red-50/30';
-                        case 'stage1': return 'hover:bg-gradient-to-r hover:from-orange-50/50 hover:to-orange-50/30';
-                        case 'elevated': return 'hover:bg-gradient-to-r hover:from-amber-50/50 hover:to-amber-50/30';
-                        case 'low': return 'hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-blue-50/30';
-                        default: return 'hover:bg-gradient-to-r hover:from-emerald-50/50 hover:to-emerald-50/30';
-                      }
-                    };
-                    
-                    const getBorderColor = (level: string) => {
-                      switch(level) {
-                        case 'crisis': return 'border-red-700';
-                        case 'stage2': return 'border-red-500';
-                        case 'stage1': return 'border-orange-500';
-                        case 'elevated': return 'border-amber-500';
-                        case 'low': return 'border-blue-500';
-                        default: return 'border-emerald-500';
-                      }
-                    };
                     
                     const d = new Date(reading.date);
                     const dd = String(d.getDate()).padStart(2,'0');
@@ -431,54 +443,54 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                     const isSynced = syncedReadingIds.includes(String(reading.id));
                     return (
                       <tr key={reading.id} className={`transition-all duration-300 border-l-4 border-transparent hover:border-l-4 hover:${getBorderColor(assessment.level)} ${getRowBg(assessment.level)} hover:shadow-sm`}>
-                        <td className="px-2 lg:px-4 py-3">
+                        <td className="px-3 py-3">
                           <div className="leading-tight">
-                            <div className="text-xs lg:text-sm font-semibold text-slate-900 whitespace-nowrap">{`${dd}-${mm}-${yyyy}`}</div>
-                            <div className="text-xs text-slate-600 font-medium mt-0.5 whitespace-nowrap">{`${hh}:${min}`}</div>
+                            <div className="text-xs font-semibold text-slate-900">{`${dd}-${mm}-${yyyy}`}</div>
+                            <div className="text-xs text-slate-600 font-medium">{`${hh}:${min}`}</div>
                           </div>
                         </td>
-                        <td className="px-2 lg:px-4 py-3 text-center">
-                          <div className="bg-white/80 rounded-lg p-2 lg:p-3 shadow-sm border border-slate-100 inline-block">
-                            <div className="flex items-baseline justify-center gap-0.5 lg:gap-1">
-                              <span className="text-lg lg:text-2xl font-black text-slate-900">{reading.systolic}</span>
-                              <span className="text-slate-400 text-sm lg:text-xl font-bold">/</span>
-                              <span className="text-base lg:text-xl font-bold text-slate-700">{reading.diastolic}</span>
+                        <td className="px-3 py-3 text-center">
+                          <div className="bg-white/80 rounded-lg p-2 shadow-sm border border-slate-100 inline-block min-w-[80px]">
+                            <div className="flex items-baseline justify-center gap-1">
+                              <span className="text-lg font-black text-slate-900">{reading.systolic}</span>
+                              <span className="text-slate-400 text-sm font-bold">/</span>
+                              <span className="text-base font-bold text-slate-700">{reading.diastolic}</span>
                             </div>
-                            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">mmHg</div>
-                            <div className={`mt-1 text-[10px] lg:text-xs font-semibold ${isOverTarget ? 'text-red-600' : 'text-emerald-600'}`}>
-                              {reading.systolic > targets.systolic ? '+' : ''}{reading.systolic - targets.systolic}/{reading.diastolic > targets.diastolic ? '+' : ''}{reading.diastolic - targets.diastolic} <span className="opacity-70 text-[9px] lg:text-[10px]">vs target</span>
+                            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">mmHg</div>
+                            <div className={`mt-1 text-[10px] font-semibold ${isOverTarget ? 'text-red-600' : 'text-emerald-600'}`}>
+                              {reading.systolic > targets.systolic ? '+' : ''}{reading.systolic - targets.systolic}/{reading.diastolic > targets.diastolic ? '+' : ''}{reading.diastolic - targets.diastolic}
                             </div>
                           </div>
                         </td>
-                        <td className="px-2 lg:px-4 py-3 text-center">
-                          <div className="bg-white/80 rounded-lg p-2 lg:p-3 shadow-sm border border-slate-100 inline-block">
-                            <div className="text-base lg:text-xl font-bold text-slate-900">{reading.pulse}</div>
-                            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">BPM</div>
+                        <td className="px-3 py-3 text-center">
+                          <div className="bg-white/80 rounded-lg p-2 shadow-sm border border-slate-100 inline-block min-w-[60px]">
+                            <div className="text-base font-bold text-slate-900">{reading.pulse}</div>
+                            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">BPM</div>
                           </div>
                         </td>
-                        <td className="px-2 lg:px-4 py-3 text-center">
+                        <td className="px-3 py-3 text-center">
                           <div className="flex flex-col items-center gap-1">
-                            <span className={`inline-flex items-center px-2 lg:px-3 py-1 lg:py-1.5 rounded-full text-xs lg:text-sm font-bold text-white bg-gradient-to-r ${getStatusGradient(assessment.level)} shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105`} title={assessment.description}>
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getStatusGradient(assessment.level)} shadow-lg transition-all duration-200`} title={assessment.description}>
                               {assessment.category}
                             </span>
                             {assessment.level === 'crisis' && (
-                              <span className="text-xs text-red-700 font-semibold animate-pulse">⚠️ Emergency</span>
+                              <span className="text-xs text-red-700 font-semibold animate-pulse">⚠️</span>
                             )}
                           </div>
                         </td>
-                        <td className="px-2 lg:px-4 py-3">
+                        <td className="px-3 py-3">
                           {reading.notes ? (
-                            <div className="bg-slate-50/80 rounded-lg p-2 lg:p-3 border border-slate-200/60">
-                              <p className="text-xs lg:text-sm text-slate-700 leading-relaxed" title={reading.notes}>
-                                {reading.notes.length > 30 ? `${reading.notes.substring(0, 30)}...` : reading.notes}
+                            <div className="bg-slate-50/80 rounded-lg p-2 border border-slate-200/60">
+                              <p className="text-xs text-slate-700 leading-relaxed" title={reading.notes}>
+                                {reading.notes.length > 25 ? `${reading.notes.substring(0, 25)}...` : reading.notes}
                               </p>
                             </div>
                           ) : (
-                            <span className="text-slate-400 text-xs lg:text-sm italic">No notes</span>
+                            <span className="text-slate-400 text-xs italic">No notes</span>
                           )}
                         </td>
                         {isGoogleCalendarConnected && (
-                          <td className="px-2 lg:px-4 py-3 text-center">
+                          <td className="px-3 py-3 text-center">
                             <div className="flex flex-col items-center gap-1">
                               <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
                                 isSynced 
@@ -486,7 +498,7 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                                   : 'text-amber-700 bg-amber-100 border border-amber-200'
                               }`}>
                                 <SyncIcon synced={isSynced} />
-                                <span>{isSynced ? 'Synced' : 'Not Synced'}</span>
+                                <span className="hidden xl:inline">{isSynced ? 'Synced' : 'Not Synced'}</span>
                               </div>
                               {!isSynced && onSyncReading && (
                                 <button
@@ -494,29 +506,31 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                                   className="text-xs text-indigo-600 hover:text-indigo-800 font-medium underline"
                                   title="Sync to Google Calendar"
                                 >
-                                  Sync Now
+                                  Sync
                                 </button>
                               )}
                             </div>
                           </td>
                         )}
                         {(onEditReading || onDeleteReading) && (
-                          <td className="px-2 lg:px-4 py-3 text-center">
-                            <div className="flex flex-col lg:flex-row items-center justify-center gap-1 lg:gap-2">
+                          <td className="px-3 py-3 text-center">
+                            <div className="flex items-center justify-center gap-1">
                               {onEditReading && (
                                 <button
                                   onClick={() => onEditReading(reading)}
-                                  className="px-2 lg:px-3 py-1 lg:py-1.5 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white text-xs lg:text-sm font-semibold rounded-md lg:rounded-lg shadow-md hover:shadow-lg hover:from-indigo-600 hover:to-indigo-700 transition-all duration-200 transform hover:scale-105 w-full lg:w-auto"
+                                  className="px-2 py-1 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white text-xs font-semibold rounded-md shadow-md hover:shadow-lg hover:from-indigo-600 hover:to-indigo-700 transition-all duration-200"
+                                  title="Edit reading"
                                 >
-                                  {t('table.edit')}
+                                  <EditIcon />
                                 </button>
                               )}
                               {onDeleteReading && (
                                 <button
                                   onClick={() => onDeleteReading(reading)}
-                                  className="px-2 lg:px-3 py-1 lg:py-1.5 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs lg:text-sm font-semibold rounded-md lg:rounded-lg shadow-md hover:shadow-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 transform hover:scale-105 w-full lg:w-auto"
+                                  className="px-2 py-1 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-semibold rounded-md shadow-md hover:shadow-lg hover:from-red-600 hover:to-red-700 transition-all duration-200"
+                                  title="Delete reading"
                                 >
-                                  {t('table.delete')}
+                                  <DeleteIcon />
                                 </button>
                               )}
                             </div>
@@ -529,6 +543,116 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
               </table>
             </div>
 
+            {/* Medium Table - Tablet View */}
+            <div className="hidden md:block lg:hidden">
+              <div className="space-y-3">
+                {paginatedReadings.map((reading, index) => {
+                  const assessment = getBloodPressureAssessment(reading.systolic, reading.diastolic);
+                  const isOverTarget = reading.systolic > targets.systolic || reading.diastolic > targets.diastolic;
+                  const isSynced = syncedReadingIds.includes(String(reading.id));
+                  
+                  const d = new Date(reading.date);
+                  const dd = String(d.getDate()).padStart(2,'0');
+                  const mm = String(d.getMonth() + 1).padStart(2,'0');
+                  const yyyy = d.getFullYear();
+                  const hh = String(d.getHours()).padStart(2,'0');
+                  const min = String(d.getMinutes()).padStart(2,'0');
+
+                  return (
+                    <div key={reading.id} className={`bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden transition-all duration-300 hover:shadow-lg ${getRowBg(assessment.level)}`}>
+                      {/* Header */}
+                      <div className="bg-gradient-to-r from-slate-50 to-indigo-50/30 px-4 py-3 border-b border-slate-200">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="text-sm font-semibold text-slate-900">{`${dd}-${mm}-${yyyy}`}</div>
+                            <div className="text-xs text-slate-600">{`${hh}:${min}`}</div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getStatusGradient(assessment.level)}`}>
+                              {assessment.category}
+                            </span>
+                            {isGoogleCalendarConnected && (
+                              <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                                isSynced 
+                                  ? 'text-green-700 bg-green-100 border border-green-200' 
+                                  : 'text-amber-700 bg-amber-100 border border-amber-200'
+                              }`}>
+                                <SyncIcon synced={isSynced} />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Content */}
+                      <div className="px-4 py-3">
+                        <div className="grid grid-cols-2 gap-4 mb-3">
+                          {/* Blood Pressure */}
+                          <div className="text-center">
+                            <div className="bg-slate-50 rounded-lg p-3">
+                              <div className="flex items-baseline justify-center gap-1 mb-1">
+                                <span className="text-xl font-black text-slate-900">{reading.systolic}</span>
+                                <span className="text-slate-400 font-bold">/</span>
+                                <span className="text-lg font-bold text-slate-700">{reading.diastolic}</span>
+                              </div>
+                              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">mmHg</div>
+                            </div>
+                          </div>
+                          
+                          {/* Pulse */}
+                          <div className="text-center">
+                            <div className="bg-slate-50 rounded-lg p-3">
+                              <div className="text-xl font-bold text-slate-900 mb-1">{reading.pulse}</div>
+                              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">BPM</div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Notes */}
+                        {reading.notes && (
+                          <div className="bg-slate-50/80 rounded-lg p-2 mb-3">
+                            <p className="text-sm text-slate-700">{reading.notes}</p>
+                          </div>
+                        )}
+                        
+                        {/* Actions */}
+                        <div className="flex items-center justify-between">
+                          {!isSynced && onSyncReading && (
+                            <button
+                              onClick={() => onSyncReading(reading)}
+                              className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 transition-all duration-200 flex items-center gap-1"
+                            >
+                              <SyncIcon synced={false} />
+                              Sync Now
+                            </button>
+                          )}
+                          
+                          <div className="flex items-center gap-2 ml-auto">
+                            {onEditReading && (
+                              <button
+                                onClick={() => onEditReading(reading)}
+                                className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 transition-all duration-200"
+                              >
+                                Edit
+                              </button>
+                            )}
+                            {onDeleteReading && (
+                              <button
+                                onClick={() => onDeleteReading(reading)}
+                                className="px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 transition-all duration-200"
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Mobile-Optimized Cards */}
             <div className="md:hidden space-y-4 p-4">
               {/* Current Targets Chip (Mobile) */}
@@ -539,28 +663,6 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
               </div>
               {paginatedReadings.map((reading, index) => {
                 const assessment = getBloodPressureAssessment(reading.systolic, reading.diastolic);
-
-                const getStatusGradient = (level: string) => {
-                  switch(level) {
-                    case 'crisis': return 'from-red-700 to-red-800';
-                    case 'stage2': return 'from-red-500 to-red-600';
-                    case 'stage1': return 'from-orange-500 to-orange-600';
-                    case 'elevated': return 'from-amber-500 to-amber-600';
-                    case 'low': return 'from-blue-500 to-blue-600';
-                    default: return 'from-emerald-500 to-emerald-600';
-                  }
-                };
-
-                const getStatusBg = (level: string) => {
-                  switch(level) {
-                    case 'crisis': return 'bg-gradient-to-br from-red-100 to-red-200/50';
-                    case 'stage2': return 'bg-gradient-to-br from-red-50 to-red-100/50';
-                    case 'stage1': return 'bg-gradient-to-br from-orange-50 to-orange-100/50';
-                    case 'elevated': return 'bg-gradient-to-br from-amber-50 to-amber-100/50';
-                    case 'low': return 'bg-gradient-to-br from-blue-50 to-blue-100/50';
-                    default: return 'bg-gradient-to-br from-emerald-50 to-emerald-100/50';
-                  }
-                };
 
                 const md = new Date(reading.date);
                 const mdd = String(md.getDate()).padStart(2,'0');
