@@ -1049,6 +1049,10 @@ const MainApp: React.FC = () => {
                       totalReadings={readings.length}
                       onEditReading={handleEditReading}
                       onDeleteReading={handleDeleteReading}
+                      onSyncReading={handleManualSync}
+                      onBulkSync={handleBulkManualSync}
+                      syncedReadingIds={settings.googleCalendarSync?.syncedReadingIds || []}
+                      isGoogleCalendarConnected={!!(settings.googleCalendarSync?.accessToken)}
                     />
                   </div>
                 </>

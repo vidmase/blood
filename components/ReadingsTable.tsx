@@ -9,6 +9,10 @@ interface ReadingsTableProps {
   totalReadings: number;
   onEditReading?: (reading: BloodPressureReading) => void;
   onDeleteReading?: (reading: BloodPressureReading) => void;
+  onSyncReading?: (reading: BloodPressureReading) => void;
+  onBulkSync?: (readings: BloodPressureReading[]) => void;
+  syncedReadingIds?: string[];
+  isGoogleCalendarConnected?: boolean;
 }
 
 // Medical Icons
@@ -39,6 +43,18 @@ const ClockIcon: React.FC = () => (
 const CalendarIcon: React.FC = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
         <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+);
+
+const SyncIcon: React.FC<{ synced?: boolean }> = ({ synced }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        {synced ? (
+            // Synced icon (checkmark in circle)
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        ) : (
+            // Not synced icon (refresh/arrow)
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        )}
     </svg>
 );
 
@@ -226,7 +242,16 @@ const getStatusIndicator = (value: number, type: 'systolic' | 'diastolic'): {
 };
 
 
-export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalReadings, onEditReading, onDeleteReading }) => {
+export const ReadingsTable: React.FC<ReadingsTableProps> = ({ 
+  readings, 
+  totalReadings, 
+  onEditReading, 
+  onDeleteReading, 
+  onSyncReading,
+  onBulkSync,
+  syncedReadingIds = [],
+  isGoogleCalendarConnected = false
+}) => {
   const { t, language } = useLocalization();
   const { targets } = useUserSettings();
   const [currentPage, setCurrentPage] = useState(1);
@@ -236,6 +261,10 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
   const hasFilteredReadings = readings.length > 0;
   
   const dateLocale = language === 'lt' ? 'lt-LT' : 'en-US';
+  
+  // Calculate sync statistics
+  const unsyncedReadings = readings.filter(reading => !syncedReadingIds.includes(String(reading.id)));
+  const syncedCount = readings.length - unsyncedReadings.length;
 
   // Pagination logic
   const paginatedReadings = useMemo(() => {
@@ -318,6 +347,18 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
                       {t('table.currentTargets', { sys: targets.systolic, dia: targets.diastolic })}
                     </span>
                   </div>
+                  
+                  {/* Bulk Sync Button */}
+                  {isGoogleCalendarConnected && unsyncedReadings.length > 0 && onBulkSync && (
+                    <button
+                      onClick={() => onBulkSync(unsyncedReadings)}
+                      className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-semibold rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                      title={`Sync ${unsyncedReadings.length} unsynced readings to Google Calendar`}
+                    >
+                      <SyncIcon synced={false} />
+                      <span>Sync All ({unsyncedReadings.length})</span>
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -332,6 +373,9 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
                     <th className="px-3 lg:px-6 py-4 text-center text-xs lg:text-sm font-bold text-slate-800 uppercase tracking-wide w-[15%]">{t('table.pulse')}</th>
                     <th className="px-3 lg:px-6 py-4 text-center text-xs lg:text-sm font-bold text-slate-800 uppercase tracking-wide w-[15%]">{t('table.assessment')}</th>
                     <th className="px-3 lg:px-6 py-4 text-left text-xs lg:text-sm font-bold text-slate-800 uppercase tracking-wide w-[20%]">{t('table.notes')}</th>
+                    {isGoogleCalendarConnected && (
+                      <th className="px-3 lg:px-6 py-4 text-center text-xs lg:text-sm font-bold text-slate-800 uppercase tracking-wide w-[10%]">Sync Status</th>
+                    )}
                     {(onEditReading || onDeleteReading) && (
                       <th className="px-3 lg:px-6 py-4 text-center text-xs lg:text-sm font-bold text-slate-800 uppercase tracking-wide w-[15%]">{t('table.actions')}</th>
                     )}
@@ -384,6 +428,7 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
                     const min = String(d.getMinutes()).padStart(2,'0');
 
                     const isOverTarget = reading.systolic > targets.systolic || reading.diastolic > targets.diastolic;
+                    const isSynced = syncedReadingIds.includes(String(reading.id));
                     return (
                       <tr key={reading.id} className={`transition-all duration-300 border-l-4 border-transparent hover:border-l-4 hover:${getBorderColor(assessment.level)} ${getRowBg(assessment.level)} hover:shadow-sm`}>
                         <td className="px-2 lg:px-4 py-3">
@@ -432,6 +477,29 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
                             <span className="text-slate-400 text-xs lg:text-sm italic">No notes</span>
                           )}
                         </td>
+                        {isGoogleCalendarConnected && (
+                          <td className="px-2 lg:px-4 py-3 text-center">
+                            <div className="flex flex-col items-center gap-1">
+                              <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
+                                isSynced 
+                                  ? 'text-green-700 bg-green-100 border border-green-200' 
+                                  : 'text-amber-700 bg-amber-100 border border-amber-200'
+                              }`}>
+                                <SyncIcon synced={isSynced} />
+                                <span>{isSynced ? 'Synced' : 'Not Synced'}</span>
+                              </div>
+                              {!isSynced && onSyncReading && (
+                                <button
+                                  onClick={() => onSyncReading(reading)}
+                                  className="text-xs text-indigo-600 hover:text-indigo-800 font-medium underline"
+                                  title="Sync to Google Calendar"
+                                >
+                                  Sync Now
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        )}
                         {(onEditReading || onDeleteReading) && (
                           <td className="px-2 lg:px-4 py-3 text-center">
                             <div className="flex flex-col lg:flex-row items-center justify-center gap-1 lg:gap-2">
@@ -502,6 +570,7 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
                 const mmin = String(md.getMinutes()).padStart(2,'0');
 
                 const isOverTarget = reading.systolic > targets.systolic || reading.diastolic > targets.diastolic;
+                const isSynced = syncedReadingIds.includes(String(reading.id));
                 return (
                   <div key={reading.id} className={`relative rounded-2xl shadow-lg border border-slate-200/60 overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:-translate-y-2 ${getStatusBg(assessment.level)} animate-fadeInUp`}>
                     {/* Status Indicator Bar */}
@@ -521,6 +590,18 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
                           </span>
                           {assessment.level === 'crisis' && (
                             <span className="text-xs text-red-700 font-semibold animate-pulse">⚠️ Emergency</span>
+                          )}
+                          
+                          {/* Sync Status */}
+                          {isGoogleCalendarConnected && (
+                            <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
+                              isSynced 
+                                ? 'text-green-700 bg-green-100 border border-green-200' 
+                                : 'text-amber-700 bg-amber-100 border border-amber-200'
+                            }`}>
+                              <SyncIcon synced={isSynced} />
+                              <span>{isSynced ? 'Synced' : 'Not Synced'}</span>
+                            </div>
                           )}
                           
                           {(onEditReading || onDeleteReading) && (
@@ -582,6 +663,25 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({ readings, totalRea
                         <div className="bg-white/70 rounded-xl p-3 backdrop-blur-sm">
                           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Notes</div>
                           <p className="text-sm text-slate-700 leading-relaxed">{reading.notes}</p>
+                        </div>
+                      )}
+                      
+                      {/* Sync Action Section */}
+                      {isGoogleCalendarConnected && !isSynced && onSyncReading && (
+                        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-3 border border-indigo-200">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="text-xs font-semibold text-indigo-700 uppercase tracking-wide mb-1">Calendar Sync</div>
+                              <p className="text-sm text-indigo-600">Not synced to Google Calendar</p>
+                            </div>
+                            <button
+                              onClick={() => onSyncReading(reading)}
+                              className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 transition-all duration-200 flex items-center gap-1"
+                            >
+                              <SyncIcon synced={false} />
+                              Sync Now
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>
