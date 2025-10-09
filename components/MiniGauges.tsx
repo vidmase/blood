@@ -1,6 +1,7 @@
 import React from 'react';
 import type { BloodPressureReading } from '../types';
 import { useLocalization } from '../context/LocalizationContext';
+import { classifyBloodPressure } from '../utils/bpClassification';
 
 interface MiniGaugesProps {
   readings: BloodPressureReading[];
@@ -15,6 +16,22 @@ export const MiniGauges: React.FC<MiniGaugesProps> = ({ readings }) => {
 
   const latestReading = readings[0];
   const { systolic, diastolic, pulse } = latestReading;
+
+  // Get ESH-based colors for blood pressure
+  const eshCategory = classifyBloodPressure(systolic, diastolic);
+  
+  // Helper to get color based on value type
+  const getValueColor = (value: number, type: 'systolic' | 'diastolic' | 'pulse'): string => {
+    if (type === 'pulse') {
+      if (value < 60) return '#60a5fa'; // blue - low
+      if (value <= 100) return '#10b981'; // green - normal
+      if (value <= 120) return '#fbbf24'; // amber - elevated
+      return '#ef4444'; // red - high
+    }
+    
+    // For systolic and diastolic, use ESH category color
+    return eshCategory.color;
+  };
 
   // Mini gauge component
   const MiniGauge: React.FC<{
@@ -74,7 +91,7 @@ export const MiniGauges: React.FC<MiniGaugesProps> = ({ readings }) => {
       <MiniGauge
         value={systolic}
         max={200}
-        color="#ef4444"
+        color={getValueColor(systolic, 'systolic')}
         label="SYS"
         unit=""
       />
@@ -82,7 +99,7 @@ export const MiniGauges: React.FC<MiniGaugesProps> = ({ readings }) => {
       <MiniGauge
         value={diastolic}
         max={120}
-        color="#3b82f6"
+        color={getValueColor(diastolic, 'diastolic')}
         label="DIA"
         unit=""
       />
@@ -90,7 +107,7 @@ export const MiniGauges: React.FC<MiniGaugesProps> = ({ readings }) => {
       <MiniGauge
         value={pulse}
         max={120}
-        color="#10b981"
+        color={getValueColor(pulse, 'pulse')}
         label="HR"
         unit=""
       />

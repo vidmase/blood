@@ -178,7 +178,8 @@ export const UnifiedSettingsModal: React.FC<UnifiedSettingsModalProps> = ({
     });
   };
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     onSave(profile, settings);
     setSuccess('Profile settings saved successfully!');
     setTimeout(() => setSuccess(null), 3000);
@@ -186,6 +187,7 @@ export const UnifiedSettingsModal: React.FC<UnifiedSettingsModalProps> = ({
 
   const handleUpdateAccount = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setError(null);
     setSuccess(null);
 
@@ -233,6 +235,7 @@ export const UnifiedSettingsModal: React.FC<UnifiedSettingsModalProps> = ({
 
   const handleSaveTargets = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setError(null);
     setSuccess(null);
 
@@ -257,7 +260,8 @@ export const UnifiedSettingsModal: React.FC<UnifiedSettingsModalProps> = ({
     }
   };
 
-  const handleResetTargets = async () => {
+  const handleResetTargets = async (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     try {
       await resetToDefaults();
       const defaultTargets = {
@@ -284,7 +288,8 @@ export const UnifiedSettingsModal: React.FC<UnifiedSettingsModalProps> = ({
     }
   };
 
-  const handleSignOut = async () => {
+  const handleSignOut = async (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     try {
       await signOut();
       onClose();
@@ -746,7 +751,10 @@ export const UnifiedSettingsModal: React.FC<UnifiedSettingsModalProps> = ({
                         {t('settings.data.clearDescription')}
                       </p>
                       <button
-                        onClick={onClearData}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onClearData();
+                        }}
                         className="px-6 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all shadow-lg"
                       >
                         {t('settings.data.clearButton')}

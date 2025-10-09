@@ -110,7 +110,7 @@ export const EditReadingModal: React.FC<EditReadingModalProps> = ({
         diastolic: parseInt(formData.diastolic),
         pulse: parseInt(formData.pulse),
         date: dateTime,
-        notes: formData.notes.trim() || undefined
+        notes: formData.notes.trim() || null
       });
       
       onClose();

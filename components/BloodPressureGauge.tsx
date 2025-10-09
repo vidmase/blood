@@ -291,23 +291,30 @@ export const BloodPressureGauge: React.FC<BloodPressureGaugeProps> = ({ readings
 
   const currentReading = readings[selectedReading];
   
-  // Simplified 3-zone system for better readability
+  // ESH-Based Zones for Blood Pressure Gauges
   const systolicZones = [
-    { min: 60, max: 120, color: '#10b981', label: t('gauge.normal') },
-    { min: 120, max: 140, color: '#f59e0b', label: t('gauge.elevated') },
-    { min: 140, max: 200, color: '#ef4444', label: t('gauge.high') }
+    { min: 60, max: 119, color: '#10b981', label: 'Optimal' },       // Optimal
+    { min: 120, max: 129, color: '#84cc16', label: 'Normal' },       // Normal
+    { min: 130, max: 139, color: '#fbbf24', label: 'High-Normal' },  // High-Normal
+    { min: 140, max: 159, color: '#fb923c', label: 'Grade 1 HTN' },  // Grade 1
+    { min: 160, max: 179, color: '#f87171', label: 'Grade 2 HTN' },  // Grade 2
+    { min: 180, max: 200, color: '#dc2626', label: 'Grade 3+ HTN' }  // Grade 3+
   ];
   
   const diastolicZones = [
-    { min: 40, max: 80, color: '#10b981', label: t('gauge.normal') },
-    { min: 80, max: 90, color: '#f59e0b', label: t('gauge.elevated') },
-    { min: 90, max: 120, color: '#ef4444', label: t('gauge.high') }
+    { min: 40, max: 79, color: '#10b981', label: 'Optimal' },        // Optimal
+    { min: 80, max: 84, color: '#84cc16', label: 'Normal' },         // Normal
+    { min: 85, max: 89, color: '#fbbf24', label: 'High-Normal' },    // High-Normal
+    { min: 90, max: 99, color: '#fb923c', label: 'Grade 1 HTN' },    // Grade 1
+    { min: 100, max: 109, color: '#f87171', label: 'Grade 2 HTN' },  // Grade 2
+    { min: 110, max: 120, color: '#dc2626', label: 'Grade 3+ HTN' }  // Grade 3+
   ];
   
   const pulseZones = [
-    { min: 40, max: 100, color: '#10b981', label: t('gauge.normal') },
-    { min: 100, max: 120, color: '#f59e0b', label: t('gauge.elevated') },
-    { min: 120, max: 200, color: '#ef4444', label: t('gauge.high') }
+    { min: 40, max: 60, color: '#60a5fa', label: 'Low' },
+    { min: 60, max: 100, color: '#10b981', label: 'Normal' },
+    { min: 100, max: 120, color: '#fbbf24', label: 'Elevated' },
+    { min: 120, max: 200, color: '#ef4444', label: 'High' }
   ];
 
   return (

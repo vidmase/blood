@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import type { BloodPressureReading } from '../types';
 import { useLocalization } from '../context/LocalizationContext';
 import { GoogleCalendarExportModal } from './GoogleCalendarExportModal';
+import { classifyBloodPressure } from '../utils/bpClassification';
 
 interface ReadingsCalendarProps {
   readings: BloodPressureReading[];
@@ -34,12 +35,29 @@ const CalendarIcon: React.FC = () => (
   </svg>
 );
 
+// ESH-Based Status Level for Calendar
 const getStatusLevel = (systolic: number, diastolic: number): 'optimal' | 'normal' | 'elevated' | 'high' | 'critical' => {
-  if (systolic >= 140 || diastolic >= 90) return 'critical';
-  if (systolic >= 130 || diastolic >= 85) return 'high';
-  if (systolic > 120 || diastolic > 80) return 'elevated';
-  if (systolic < 90 || diastolic < 60) return 'normal';
-  return 'optimal';
+  const eshCategory = classifyBloodPressure(systolic, diastolic);
+  
+  // Map ESH categories to calendar status levels
+  switch (eshCategory.categoryShort) {
+    case 'Crisis':
+    case 'Grade 3 HTN':
+    case 'Grade 2 HTN':
+      return 'critical';
+    case 'Grade 1 HTN':
+    case 'ISH':
+      return 'high';
+    case 'High-Normal':
+      return 'elevated';
+    case 'Normal':
+      return 'normal';
+    case 'Low':
+      return 'normal'; // Low BP shows as normal blue
+    case 'Optimal':
+    default:
+      return 'optimal';
+  }
 };
 
 // Solid, distinct colors for each status - highly visible

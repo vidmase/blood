@@ -23,6 +23,7 @@ import { HealthScoreDashboard } from './components/HealthScoreDashboard';
 import { QuickStatsWidget } from './components/QuickStatsWidget';
 import { GoalsProgress } from './components/GoalsProgress';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { ESHClassificationButton } from './components/ESHClassificationButton';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { UserSettingsProvider } from './context/UserSettingsContext';
 import { extractDataFromImage, analyzeReadings, getHealthInsights } from './services/geminiService';
@@ -928,6 +929,15 @@ const MainApp: React.FC = () => {
                     </svg>
                     <span className="font-semibold">{isFetchingInsights ? t('buttons.loading') : t('buttons.healthInsights')}</span>
                   </button>
+                  <ESHClassificationButton
+                    variant="primary"
+                    className="w-full flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 text-white hover:from-teal-600 hover:to-cyan-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span className="font-semibold">{t('esh.title')}</span>
+                  </ESHClassificationButton>
                 </div>
               </div>
               
@@ -1051,7 +1061,6 @@ const MainApp: React.FC = () => {
                       onDeleteReading={handleDeleteReading}
                       onSyncReading={handleManualSync}
                       onBulkSync={handleBulkManualSync}
-                      syncedReadingIds={settings.googleCalendarSync?.syncedReadingIds || []}
                       isGoogleCalendarConnected={!!(settings.googleCalendarSync?.accessToken)}
                     />
                   </div>

@@ -6,6 +6,7 @@ export interface BloodPressureReading {
   diastolic: number;
   pulse: number;
   notes?: string;
+  synced_to_calendar?: boolean; // Tracks if reading has been synced to Google Calendar
 }
 
 export interface TrendComparison {

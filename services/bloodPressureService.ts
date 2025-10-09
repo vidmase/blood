@@ -11,6 +11,7 @@ export interface DatabaseReading {
   created_at: string;
   updated_at: string;
   notes?: string;
+  synced_to_calendar?: boolean;
 }
 
 export interface CreateReadingData {
@@ -26,7 +27,7 @@ export interface UpdateReadingData {
   diastolic?: number;
   pulse?: number;
   reading_date?: string;
-  notes?: string;
+  notes?: string | null;
 }
 
 class BloodPressureService {
@@ -39,6 +40,7 @@ class BloodPressureService {
       diastolic: dbReading.diastolic,
       pulse: dbReading.pulse,
       notes: dbReading.notes,
+      synced_to_calendar: dbReading.synced_to_calendar || false,
     };
   }
 
@@ -212,6 +214,79 @@ class BloodPressureService {
     }));
 
     await this.createReadings(readingsData);
+  }
+
+  // Mark a reading as synced to Google Calendar
+  async markAsSynced(readingId: string): Promise<void> {
+    const { error } = await supabase
+      .from('blood_pressure_readings')
+      .update({ synced_to_calendar: true })
+      .eq('id', readingId);
+
+    if (error) {
+      console.error('Error marking reading as synced:', error);
+      throw new Error('Failed to mark reading as synced');
+    }
+  }
+
+  // Mark multiple readings as synced to Google Calendar
+  async markMultipleAsSynced(readingIds: string[]): Promise<void> {
+    if (readingIds.length === 0) return;
+
+    const { error } = await supabase
+      .from('blood_pressure_readings')
+      .update({ synced_to_calendar: true })
+      .in('id', readingIds);
+
+    if (error) {
+      console.error('Error marking readings as synced:', error);
+      throw new Error('Failed to mark readings as synced');
+    }
+  }
+
+  // Mark a reading as not synced (for unsync operation)
+  async markAsUnsynced(readingId: string): Promise<void> {
+    const { error } = await supabase
+      .from('blood_pressure_readings')
+      .update({ synced_to_calendar: false })
+      .eq('id', readingId);
+
+    if (error) {
+      console.error('Error marking reading as unsynced:', error);
+      throw new Error('Failed to mark reading as unsynced');
+    }
+  }
+
+  // Get only synced readings
+  async getSyncedReadings(): Promise<BloodPressureReading[]> {
+    const { data, error } = await supabase
+      .from('blood_pressure_readings')
+      .select('*')
+      .eq('synced_to_calendar', true)
+      .order('reading_date', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching synced readings:', error);
+      throw new Error('Failed to fetch synced readings');
+    }
+
+    return data.map(this.convertToAppReading);
+  }
+
+  // Get only unsynced readings
+  async getUnsyncedReadings(): Promise<BloodPressureReading[]> {
+    const { data, error } = await supabase
+      .from('blood_pressure_readings')
+      .select('*')
+      .eq('synced_to_calendar', false)
+      .order('reading_date', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching unsynced readings:', error);
+      throw new Error('Failed to fetch unsynced readings');
+    }
+
+    return data.map(this.convertToAppReading);
   }
 }
 

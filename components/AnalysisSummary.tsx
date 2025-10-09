@@ -3,6 +3,7 @@
 import React from 'react';
 import type { AnalysisData, TrendComparison } from '../types';
 import { useLocalization } from '../context/LocalizationContext';
+import { ESHQuickButton } from './ESHClassificationButton';
 
 interface AnalysisSummaryProps {
   analysisData: AnalysisData | null;
@@ -201,16 +202,19 @@ export const AnalysisSummary: React.FC<AnalysisSummaryProps> = ({ analysisData, 
                 <WandIcon className="w-7 h-7 text-transparent bg-clip-text bg-gradient-to-r from-[var(--c-primary)] to-[var(--c-secondary)]" />
                 <h2 className="text-2xl font-bold text-[var(--c-text-primary)]">{t('analysis.title')}</h2>
             </div>
-            <button
-                onClick={onRegenerate}
-                disabled={isLoading || !hasEnoughReadings}
-                className="p-2 rounded-full text-[var(--c-text-secondary)] hover:bg-[var(--c-primary-light)] hover:text-[var(--c-primary)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors duration-200"
-                aria-label={t('analysis.regenerateAriaLabel')}
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h5M20 20v-5h-5M4 4l1.5 1.5A9 9 0 0120.5 11M20 20l-1.5-1.5A9 9 0 013.5 13" />
-                </svg>
-            </button>
+            <div className="flex items-center space-x-2">
+              <ESHQuickButton />
+              <button
+                  onClick={onRegenerate}
+                  disabled={isLoading || !hasEnoughReadings}
+                  className="p-2 rounded-full text-[var(--c-text-secondary)] hover:bg-[var(--c-primary-light)] hover:text-[var(--c-primary)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors duration-200"
+                  aria-label={t('analysis.regenerateAriaLabel')}
+              >
+                  <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h5M20 20v-5h-5M4 4l1.5 1.5A9 9 0 0120.5 11M20 20l-1.5-1.5A9 9 0 013.5 13" />
+                  </svg>
+              </button>
+            </div>
         </div>
         {renderContent()}
     </div>

@@ -44,7 +44,8 @@ export const CalendarSyncSettings: React.FC<CalendarSyncSettingsProps> = ({
     loadCalendars();
   }, [currentSync?.accessToken, calendars.length]);
 
-  const handleConnect = async () => {
+  const handleConnect = async (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     try {
       setSyncStatus('connecting');
       // Clear any existing OAuth state before starting new flow
@@ -59,7 +60,9 @@ export const CalendarSyncSettings: React.FC<CalendarSyncSettingsProps> = ({
     }
   };
 
-  const handleSelectCalendar = (calendarId: string) => {
+  const handleSelectCalendar = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    e.stopPropagation();
+    const calendarId = e.target.value;
     const updatedSync: GoogleCalendarSync = {
       ...(currentSync || { enabled: false }),
       calendarId,
@@ -67,7 +70,8 @@ export const CalendarSyncSettings: React.FC<CalendarSyncSettingsProps> = ({
     onSyncUpdate(updatedSync);
   };
 
-  const handleToggleAutoSync = () => {
+  const handleToggleAutoSync = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     if (!currentSync) return;
     const updatedSync: GoogleCalendarSync = {
       ...currentSync,
@@ -76,7 +80,8 @@ export const CalendarSyncSettings: React.FC<CalendarSyncSettingsProps> = ({
     onSyncUpdate(updatedSync);
   };
 
-  const handleSyncNow = async () => {
+  const handleSyncNow = async (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     if (!currentSync?.accessToken) {
       onError('Please connect to Google Calendar first');
       return;
@@ -104,7 +109,8 @@ export const CalendarSyncSettings: React.FC<CalendarSyncSettingsProps> = ({
     }
   };
 
-  const handleDisconnect = async () => {
+  const handleDisconnect = async (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     if (!currentSync) return;
     
     try {
@@ -124,7 +130,8 @@ export const CalendarSyncSettings: React.FC<CalendarSyncSettingsProps> = ({
     }
   };
 
-  const handleTestConnection = async () => {
+  const handleTestConnection = async (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     if (!currentSync?.accessToken) {
       onError('Please connect to Google Calendar first');
       return;
@@ -143,7 +150,8 @@ export const CalendarSyncSettings: React.FC<CalendarSyncSettingsProps> = ({
     }
   };
 
-  const handleRebuildSyncTracking = async () => {
+  const handleRebuildSyncTracking = async (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     if (!currentSync?.accessToken) {
       onError('Please connect to Google Calendar first');
       return;
@@ -168,7 +176,8 @@ export const CalendarSyncSettings: React.FC<CalendarSyncSettingsProps> = ({
     }
   };
 
-  const handleMarkAllAsSynced = () => {
+  const handleMarkAllAsSynced = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     if (!currentSync) {
       onError('Please connect to Google Calendar first');
       return;
@@ -306,7 +315,7 @@ export const CalendarSyncSettings: React.FC<CalendarSyncSettingsProps> = ({
               </label>
               <select
                 value={currentSync.calendarId || 'primary'}
-                onChange={(e) => handleSelectCalendar(e.target.value)}
+                onChange={handleSelectCalendar}
                 className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 {calendars.map((calendar) => (

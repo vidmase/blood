@@ -3,6 +3,8 @@ import React, { useState, useMemo } from 'react';
 import type { BloodPressureReading } from '../types';
 import { useLocalization } from '../context/LocalizationContext';
 import { useUserSettings } from '../context/UserSettingsContext';
+import { classifyReading } from '../utils/bpClassification';
+import { ESHClassificationButton } from './ESHClassificationButton';
 
 interface ReadingsTableProps {
   readings: BloodPressureReading[];
@@ -11,7 +13,6 @@ interface ReadingsTableProps {
   onDeleteReading?: (reading: BloodPressureReading) => void;
   onSyncReading?: (reading: BloodPressureReading) => void;
   onBulkSync?: (readings: BloodPressureReading[]) => void;
-  syncedReadingIds?: string[];
   isGoogleCalendarConnected?: boolean;
 }
 
@@ -82,7 +83,8 @@ const TrendDownIcon: React.FC<{ className?: string }> = ({ className = "h-3 w-3"
     </svg>
 );
 
-// Blood Pressure Assessment based on AHA/ESH Guidelines
+// ESH Blood Pressure Assessment Wrapper
+// Maps ESH classification to table display format
 const getBloodPressureAssessment = (systolic: number, diastolic: number): {
   category: string;
   level: 'low' | 'normal' | 'elevated' | 'stage1' | 'stage2' | 'crisis';
@@ -90,77 +92,62 @@ const getBloodPressureAssessment = (systolic: number, diastolic: number): {
   bgColor: string;
   description: string;
 } => {
-  // Hypertensive Crisis (Critical) - 180+ OR 120+
-  // AND/OR logic: Either systolic ≥180 OR diastolic ≥120 triggers crisis
-  if (systolic >= 180 || diastolic >= 120) {
-    return {
-      category: 'Hypertensive Crisis',
-      level: 'crisis',
-      color: 'text-red-900',
-      bgColor: 'bg-red-100',
-      description: 'Medical emergency - Immediate medical attention required'
-    };
+  const eshCategory = classifyReading({ systolic, diastolic, pulse: 0, id: '', date: new Date().toISOString() });
+  
+  // Map ESH categories to table levels for backwards compatibility
+  let level: 'low' | 'normal' | 'elevated' | 'stage1' | 'stage2' | 'crisis';
+  
+  switch (eshCategory.categoryShort) {
+    case 'Crisis':
+    case 'Grade 3 HTN':
+      level = 'crisis';
+      break;
+    case 'Grade 2 HTN':
+      level = 'stage2';
+      break;
+    case 'Grade 1 HTN':
+    case 'ISH':
+      level = 'stage1';
+      break;
+    case 'High-Normal':
+      level = 'elevated';
+      break;
+    case 'Low':
+      level = 'low';
+      break;
+    case 'Normal':
+      level = 'normal';
+      break;
+    case 'Optimal':
+    default:
+      level = 'normal';
+      break;
   }
   
-  // Stage 2 Hypertension - 140-179 OR 90-109
-  // High cardiovascular risk
-  if ((systolic >= 140 && systolic < 180) || (diastolic >= 90 && diastolic < 120)) {
-    return {
-      category: 'Stage 2 Hypertension',
-      level: 'stage2',
-      color: 'text-red-700',
-      bgColor: 'bg-red-50',
-      description: 'Medication + lifestyle changes required'
-    };
-  }
+  // Map ESH colors to Tailwind text/bg classes
+  const getColorClasses = (color: string) => {
+    if (color.includes('#991b1b') || color.includes('#dc2626')) return { text: 'text-red-900', bg: 'bg-red-100' };
+    if (color.includes('#f87171')) return { text: 'text-red-700', bg: 'bg-red-50' };
+    if (color.includes('#fb923c') || color.includes('#f97316')) return { text: 'text-orange-700', bg: 'bg-orange-50' };
+    if (color.includes('#fbbf24')) return { text: 'text-amber-700', bg: 'bg-amber-50' };
+    if (color.includes('#60a5fa')) return { text: 'text-blue-700', bg: 'bg-blue-50' };
+    if (color.includes('#84cc16')) return { text: 'text-lime-700', bg: 'bg-lime-50' };
+    if (color.includes('#10b981')) return { text: 'text-emerald-700', bg: 'bg-emerald-50' };
+    return { text: 'text-slate-700', bg: 'bg-slate-50' };
+  };
   
-  // Stage 1 Hypertension - 130-139 OR 80-89
-  // Increased cardiovascular risk
-  if ((systolic >= 130 && systolic < 140) || (diastolic >= 80 && diastolic < 90)) {
-    return {
-      category: 'Stage 1 Hypertension',
-      level: 'stage1',
-      color: 'text-orange-700',
-      bgColor: 'bg-orange-50',
-      description: 'Lifestyle changes + possible medication'
-    };
-  }
+  const colors = getColorClasses(eshCategory.color);
   
-  // Elevated (High-Normal) - 120-129 AND <80
-  // Risk of developing hypertension
-  if (systolic >= 120 && systolic < 130 && diastolic < 80) {
-    return {
-      category: 'Elevated',
-      level: 'elevated',
-      color: 'text-amber-700',
-      bgColor: 'bg-amber-50',
-      description: 'Lifestyle modifications recommended'
-    };
-  }
-  
-  // Low Blood Pressure (Hypotension) - <90 OR <60
-  // May cause symptoms if severe
-  if (systolic < 90 || diastolic < 60) {
-    return {
-      category: 'Low',
-      level: 'low',
-      color: 'text-blue-700',
-      bgColor: 'bg-blue-50',
-      description: 'Investigate underlying causes if symptomatic'
-    };
-  }
-  
-  // Normal - <120 AND <80
-  // Optimal cardiovascular health
   return {
-    category: 'Normal',
-    level: 'normal',
-    color: 'text-emerald-700',
-    bgColor: 'bg-emerald-50',
-    description: 'Optimal cardiovascular health - Maintain healthy lifestyle'
+    category: eshCategory.category,
+    level,
+    color: colors.text,
+    bgColor: colors.bg,
+    description: eshCategory.description
   };
 };
 
+// ESH-Based Status Indicator
 const getStatusIndicator = (value: number, type: 'systolic' | 'diastolic'): { 
   className: string, 
   indicator: React.ReactNode, 
@@ -174,26 +161,36 @@ const getStatusIndicator = (value: number, type: 'systolic' | 'diastolic'): {
   let bgColor = '';
 
   if (type === 'systolic') {
-    if (value >= 180) {
+    // ESH Systolic Thresholds
+    if (value >= 220) {
       indicator = <TrendUpIcon className="h-3 w-3" />;
       textColor = 'text-red-900';
       bgColor = 'bg-red-100';
       level = 'critical';
-    } else if (value >= 140) {
+    } else if (value >= 180) {
+      indicator = <TrendUpIcon className="h-3 w-3" />;
+      textColor = 'text-red-800';
+      bgColor = 'bg-red-100';
+      level = 'critical';
+    } else if (value >= 160) {
       indicator = <TrendUpIcon className="h-3 w-3" />;
       textColor = 'text-red-700';
       bgColor = 'bg-red-50';
       level = 'critical';
-    } else if (value >= 130) {
+    } else if (value >= 140) {
       indicator = <TrendUpIcon className="h-3 w-3" />;
       textColor = 'text-orange-700';
       bgColor = 'bg-orange-50';
       level = 'high';
-    } else if (value >= 120) {
+    } else if (value >= 130) {
       indicator = <TrendUpIcon className="h-3 w-3" />;
       textColor = 'text-amber-700';
       bgColor = 'bg-amber-50';
       level = 'elevated';
+    } else if (value >= 120) {
+      textColor = 'text-lime-700';
+      bgColor = 'bg-lime-50';
+      level = 'normal';
     } else if (value < 90) {
       indicator = <TrendDownIcon className="h-3 w-3" />;
       textColor = 'text-blue-700';
@@ -204,31 +201,45 @@ const getStatusIndicator = (value: number, type: 'systolic' | 'diastolic'): {
       bgColor = 'bg-emerald-50';
       level = 'optimal';
     }
-  } else { // diastolic
+  } else { // diastolic - ESH Diastolic Thresholds
     if (value >= 120) {
       indicator = <TrendUpIcon className="h-3 w-3" />;
       textColor = 'text-red-900';
       bgColor = 'bg-red-100';
       level = 'critical';
-    } else if (value >= 90) {
+    } else if (value >= 110) {
+      indicator = <TrendUpIcon className="h-3 w-3" />;
+      textColor = 'text-red-800';
+      bgColor = 'bg-red-100';
+      level = 'critical';
+    } else if (value >= 100) {
       indicator = <TrendUpIcon className="h-3 w-3" />;
       textColor = 'text-red-700';
       bgColor = 'bg-red-50';
       level = 'critical';
-    } else if (value >= 80) {
+    } else if (value >= 90) {
       indicator = <TrendUpIcon className="h-3 w-3" />;
       textColor = 'text-orange-700';
       bgColor = 'bg-orange-50';
       level = 'high';
-    } else if (value >= 60 && value < 80) {
-      textColor = 'text-emerald-700';
-      bgColor = 'bg-emerald-50';
-      level = 'optimal';
+    } else if (value >= 85) {
+      indicator = <TrendUpIcon className="h-3 w-3" />;
+      textColor = 'text-amber-700';
+      bgColor = 'bg-amber-50';
+      level = 'elevated';
+    } else if (value >= 80) {
+      textColor = 'text-lime-700';
+      bgColor = 'bg-lime-50';
+      level = 'normal';
     } else if (value < 60) {
       indicator = <TrendDownIcon className="h-3 w-3" />;
       textColor = 'text-blue-700';
       bgColor = 'bg-blue-50';
       level = 'normal';
+    } else {
+      textColor = 'text-emerald-700';
+      bgColor = 'bg-emerald-50';
+      level = 'optimal';
     }
   }
 
@@ -249,7 +260,6 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
   onDeleteReading, 
   onSyncReading,
   onBulkSync,
-  syncedReadingIds = [],
   isGoogleCalendarConnected = false
 }) => {
   const { t, language } = useLocalization();
@@ -262,8 +272,8 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
   
   const dateLocale = language === 'lt' ? 'lt-LT' : 'en-US';
   
-  // Calculate sync statistics
-  const unsyncedReadings = readings.filter(reading => !syncedReadingIds.includes(String(reading.id)));
+  // Calculate sync statistics using the database column
+  const unsyncedReadings = readings.filter(reading => !reading.synced_to_calendar);
   const syncedCount = readings.length - unsyncedReadings.length;
 
   // Shared styling functions
@@ -369,6 +379,14 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
+                  {/* ESH Classification Button */}
+                  <ESHClassificationButton variant="secondary" size="sm">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    ESH Guide
+                  </ESHClassificationButton>
+                  
                   <div className="flex items-center gap-2">
                     <label className="text-xs font-medium text-slate-600">Show:</label>
                     <select
@@ -408,25 +426,68 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
               </div>
             </div>
 
-            {/* Desktop Table - Modern Design */}
-            <div className="hidden lg:block">
+            {/* Desktop Table - Enhanced Modern Design */}
+            <div className="hidden lg:block overflow-hidden">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-gradient-to-r from-slate-50 via-indigo-50/30 to-purple-50/30 border-b-2 border-indigo-100">
-                    <th className="px-3 py-3 text-left text-xs font-bold text-slate-800 uppercase tracking-wide">{t('table.dateTime')}</th>
-                    <th className="px-3 py-3 text-center text-xs font-bold text-slate-800 uppercase tracking-wide">{t('table.bloodPressure')}</th>
-                    <th className="px-3 py-3 text-center text-xs font-bold text-slate-800 uppercase tracking-wide">{t('table.pulse')}</th>
-                    <th className="px-3 py-3 text-center text-xs font-bold text-slate-800 uppercase tracking-wide">{t('table.assessment')}</th>
-                    <th className="px-3 py-3 text-left text-xs font-bold text-slate-800 uppercase tracking-wide">{t('table.notes')}</th>
+                  <tr className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white">
+                    <th className="px-4 py-4 text-left text-sm font-bold uppercase tracking-wider">
+                      <div className="flex items-center gap-2">
+                        <CalendarIcon />
+                        {t('table.dateTime')}
+                      </div>
+                    </th>
+                    <th className="px-4 py-4 text-center text-sm font-bold uppercase tracking-wider">
+                      <div className="flex items-center justify-center gap-2">
+                        <HeartIcon className="w-4 h-4" />
+                        {t('table.bloodPressure')}
+                      </div>
+                    </th>
+                    <th className="px-4 py-4 text-center text-sm font-bold uppercase tracking-wider">
+                      <div className="flex items-center justify-center gap-2">
+                        <HeartIcon className="w-4 h-4 text-red-400" />
+                        {t('table.pulse')}
+                      </div>
+                    </th>
+                    <th className="px-4 py-4 text-center text-sm font-bold uppercase tracking-wider">
+                      <div className="flex items-center justify-center gap-2">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {t('table.assessment')}
+                      </div>
+                    </th>
+                    <th className="px-4 py-4 text-left text-sm font-bold uppercase tracking-wider">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                        </svg>
+                        {t('table.notes')}
+                      </div>
+                    </th>
                     {isGoogleCalendarConnected && (
-                      <th className="px-3 py-3 text-center text-xs font-bold text-slate-800 uppercase tracking-wide">Sync</th>
+                      <th className="px-4 py-4 text-center text-sm font-bold uppercase tracking-wider">
+                        <div className="flex items-center justify-center gap-2">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          Sync
+                        </div>
+                      </th>
                     )}
                     {(onEditReading || onDeleteReading) && (
-                      <th className="px-3 py-3 text-center text-xs font-bold text-slate-800 uppercase tracking-wide">{t('table.actions')}</th>
+                      <th className="px-4 py-4 text-center text-sm font-bold uppercase tracking-wider">
+                        <div className="flex items-center justify-center gap-2">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                          </svg>
+                          {t('table.actions')}
+                        </div>
+                      </th>
                     )}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="bg-white">
                   {paginatedReadings.map((reading, index) => {
                     const assessment = getBloodPressureAssessment(reading.systolic, reading.diastolic);
                     const systolicStatus = getStatusIndicator(reading.systolic, 'systolic');
@@ -440,62 +501,92 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                     const min = String(d.getMinutes()).padStart(2,'0');
 
                     const isOverTarget = reading.systolic > targets.systolic || reading.diastolic > targets.diastolic;
-                    const isSynced = syncedReadingIds.includes(String(reading.id));
+                    const isSynced = reading.synced_to_calendar || false;
                     return (
-                      <tr key={reading.id} className={`transition-all duration-300 border-l-4 border-transparent hover:border-l-4 hover:${getBorderColor(assessment.level)} ${getRowBg(assessment.level)} hover:shadow-sm`}>
-                        <td className="px-3 py-3">
-                          <div className="leading-tight">
-                            <div className="text-xs font-semibold text-slate-900">{`${dd}-${mm}-${yyyy}`}</div>
-                            <div className="text-xs text-slate-600 font-medium">{`${hh}:${min}`}</div>
-                          </div>
-                        </td>
-                        <td className="px-3 py-3 text-center">
-                          <div className="bg-white/80 rounded-lg p-2 shadow-sm border border-slate-100 inline-block min-w-[80px]">
-                            <div className="flex items-baseline justify-center gap-1">
-                              <span className="text-lg font-black text-slate-900">{reading.systolic}</span>
-                              <span className="text-slate-400 text-sm font-bold">/</span>
-                              <span className="text-base font-bold text-slate-700">{reading.diastolic}</span>
+                      <tr key={reading.id} className={`group transition-all duration-300 hover:shadow-lg hover:scale-[1.01] ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'} hover:bg-gradient-to-r hover:from-white hover:to-slate-50/50 border-b border-slate-100/60`}>
+                        <td className="px-4 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center shadow-sm">
+                              <CalendarIcon />
                             </div>
-                            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">mmHg</div>
-                            <div className={`mt-1 text-[10px] font-semibold ${isOverTarget ? 'text-red-600' : 'text-emerald-600'}`}>
-                              {reading.systolic > targets.systolic ? '+' : ''}{reading.systolic - targets.systolic}/{reading.diastolic > targets.diastolic ? '+' : ''}{reading.diastolic - targets.diastolic}
+                            <div className="leading-tight">
+                              <div className="text-sm font-bold text-slate-900">{`${dd}-${mm}-${yyyy}`}</div>
+                              <div className="text-xs text-slate-600 font-medium flex items-center gap-1">
+                                <ClockIcon />
+                                {`${hh}:${min}`}
+                              </div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-3 py-3 text-center">
-                          <div className="bg-white/80 rounded-lg p-2 shadow-sm border border-slate-100 inline-block min-w-[60px]">
-                            <div className="text-base font-bold text-slate-900">{reading.pulse}</div>
-                            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">BPM</div>
+                        <td className="px-4 py-4 text-center">
+                          <div className="relative">
+                            <div className="bg-gradient-to-br from-white to-slate-50/50 rounded-2xl p-3 shadow-lg border border-slate-200/60 inline-block min-w-[100px] group-hover:shadow-xl transition-all duration-300">
+                              <div className="flex items-baseline justify-center gap-1 mb-1">
+                                <span className="text-2xl font-black text-slate-900" style={{color: systolicStatus.color}}>{reading.systolic}</span>
+                                <span className="text-slate-400 text-lg font-bold">/</span>
+                                <span className="text-xl font-bold text-slate-700" style={{color: diastolicStatus.color}}>{reading.diastolic}</span>
+                              </div>
+                              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">mmHg</div>
+                              <div className={`mt-2 px-2 py-1 rounded-full text-[10px] font-bold ${isOverTarget ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                {reading.systolic > targets.systolic ? '+' : ''}{reading.systolic - targets.systolic}/{reading.diastolic > targets.diastolic ? '+' : ''}{reading.diastolic - targets.diastolic}
+                              </div>
+                            </div>
+                            {/* Trend indicators */}
+                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
+                              <SystolicIcon />
+                            </div>
                           </div>
                         </td>
-                        <td className="px-3 py-3 text-center">
-                          <div className="flex flex-col items-center gap-1">
-                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getStatusGradient(assessment.level)} shadow-lg transition-all duration-200`} title={assessment.description}>
+                        <td className="px-4 py-4 text-center">
+                          <div className="relative">
+                            <div className="bg-gradient-to-br from-white to-slate-50/50 rounded-2xl p-3 shadow-lg border border-slate-200/60 inline-block min-w-[70px] group-hover:shadow-xl transition-all duration-300">
+                              <div className="text-lg font-black text-slate-900">{reading.pulse}</div>
+                              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">BPM</div>
+                            </div>
+                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-red-400 to-pink-500 rounded-full flex items-center justify-center">
+                              <HeartIcon className="w-2.5 h-2.5 text-white" />
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          <div className="flex flex-col items-center gap-2">
+                            <span className={`inline-flex items-center px-3 py-2 rounded-2xl text-xs font-bold text-white bg-gradient-to-r ${getStatusGradient(assessment.level)} shadow-lg transition-all duration-200 group-hover:shadow-xl group-hover:scale-105`} title={assessment.description}>
                               {assessment.category}
                             </span>
                             {assessment.level === 'crisis' && (
-                              <span className="text-xs text-red-700 font-semibold animate-pulse">⚠️</span>
+                              <div className="flex items-center gap-1 text-xs text-red-700 font-bold animate-pulse bg-red-100 px-2 py-1 rounded-full">
+                                <span>⚠️</span>
+                                <span>URGENT</span>
+                              </div>
+                            )}
+                            {assessment.level === 'stage2' && (
+                              <div className="flex items-center gap-1 text-xs text-orange-700 font-bold bg-orange-100 px-2 py-1 rounded-full">
+                                <span>⚠️</span>
+                                <span>HIGH</span>
+                              </div>
                             )}
                           </div>
                         </td>
-                        <td className="px-3 py-3">
+                        <td className="px-4 py-4">
                           {reading.notes ? (
-                            <div className="bg-slate-50/80 rounded-lg p-2 border border-slate-200/60">
+                            <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-xl p-3 border border-slate-200/60 group-hover:shadow-md transition-all duration-300">
                               <p className="text-xs text-slate-700 leading-relaxed" title={reading.notes}>
-                                {reading.notes.length > 25 ? `${reading.notes.substring(0, 25)}...` : reading.notes}
+                                {reading.notes.length > 30 ? `${reading.notes.substring(0, 30)}...` : reading.notes}
                               </p>
                             </div>
                           ) : (
-                            <span className="text-slate-400 text-xs italic">No notes</span>
+                            <div className="bg-slate-100/50 rounded-xl p-3 border border-slate-200/40">
+                              <span className="text-slate-400 text-xs italic">No notes</span>
+                            </div>
                           )}
                         </td>
                         {isGoogleCalendarConnected && (
-                          <td className="px-3 py-3 text-center">
-                            <div className="flex flex-col items-center gap-1">
-                              <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
+                          <td className="px-4 py-4 text-center">
+                            <div className="flex flex-col items-center gap-2">
+                              <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 shadow-md ${
                                 isSynced 
-                                  ? 'text-green-700 bg-green-100 border border-green-200' 
-                                  : 'text-amber-700 bg-amber-100 border border-amber-200'
+                                  ? 'text-green-800 bg-gradient-to-r from-green-100 to-emerald-100 border border-green-200' 
+                                  : 'text-amber-800 bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200'
                               }`}>
                                 <SyncIcon synced={isSynced} />
                                 <span className="hidden xl:inline">{isSynced ? 'Synced' : 'Not Synced'}</span>
@@ -503,22 +594,22 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                               {!isSynced && onSyncReading && (
                                 <button
                                   onClick={() => onSyncReading(reading)}
-                                  className="text-xs text-indigo-600 hover:text-indigo-800 font-medium underline"
+                                  className="px-3 py-1 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-xs font-bold rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200"
                                   title="Sync to Google Calendar"
                                 >
-                                  Sync
+                                  Sync Now
                                 </button>
                               )}
                             </div>
                           </td>
                         )}
                         {(onEditReading || onDeleteReading) && (
-                          <td className="px-3 py-3 text-center">
-                            <div className="flex items-center justify-center gap-1">
+                          <td className="px-4 py-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
                               {onEditReading && (
                                 <button
                                   onClick={() => onEditReading(reading)}
-                                  className="px-2 py-1 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white text-xs font-semibold rounded-md shadow-md hover:shadow-lg hover:from-indigo-600 hover:to-indigo-700 transition-all duration-200"
+                                  className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-200 flex items-center justify-center group"
                                   title="Edit reading"
                                 >
                                   <EditIcon />
@@ -527,7 +618,7 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                               {onDeleteReading && (
                                 <button
                                   onClick={() => onDeleteReading(reading)}
-                                  className="px-2 py-1 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-semibold rounded-md shadow-md hover:shadow-lg hover:from-red-600 hover:to-red-700 transition-all duration-200"
+                                  className="w-10 h-10 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-200 flex items-center justify-center group"
                                   title="Delete reading"
                                 >
                                   <DeleteIcon />
@@ -543,13 +634,13 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
               </table>
             </div>
 
-            {/* Medium Table - Tablet View */}
+            {/* Medium Table - Enhanced Tablet View */}
             <div className="hidden md:block lg:hidden">
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {paginatedReadings.map((reading, index) => {
                   const assessment = getBloodPressureAssessment(reading.systolic, reading.diastolic);
                   const isOverTarget = reading.systolic > targets.systolic || reading.diastolic > targets.diastolic;
-                  const isSynced = syncedReadingIds.includes(String(reading.id));
+                  const isSynced = reading.synced_to_calendar || false;
                   
                   const d = new Date(reading.date);
                   const dd = String(d.getDate()).padStart(2,'0');
@@ -559,23 +650,31 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                   const min = String(d.getMinutes()).padStart(2,'0');
 
                   return (
-                    <div key={reading.id} className={`bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden transition-all duration-300 hover:shadow-lg ${getRowBg(assessment.level)}`}>
-                      {/* Header */}
-                      <div className="bg-gradient-to-r from-slate-50 to-indigo-50/30 px-4 py-3 border-b border-slate-200">
+                    <div key={reading.id} className={`group bg-white rounded-2xl shadow-lg border border-slate-200/60 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}>
+                      {/* Enhanced Header */}
+                      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-4 py-4 text-white">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="text-sm font-semibold text-slate-900">{`${dd}-${mm}-${yyyy}`}</div>
-                            <div className="text-xs text-slate-600">{`${hh}:${min}`}</div>
+                            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                              <CalendarIcon />
+                            </div>
+                            <div>
+                              <div className="text-sm font-bold">{`${dd}-${mm}-${yyyy}`}</div>
+                              <div className="text-xs text-indigo-100 flex items-center gap-1">
+                                <ClockIcon />
+                                {`${hh}:${min}`}
+                              </div>
+                            </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getStatusGradient(assessment.level)}`}>
+                            <span className={`inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-white/20 backdrop-blur-sm shadow-lg`}>
                               {assessment.category}
                             </span>
                             {isGoogleCalendarConnected && (
-                              <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                              <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${
                                 isSynced 
-                                  ? 'text-green-700 bg-green-100 border border-green-200' 
-                                  : 'text-amber-700 bg-amber-100 border border-amber-200'
+                                  ? 'bg-green-500/20 text-green-100' 
+                                  : 'bg-amber-500/20 text-amber-100'
                               }`}>
                                 <SyncIcon synced={isSynced} />
                               </div>
@@ -584,43 +683,46 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                         </div>
                       </div>
                       
-                      {/* Content */}
-                      <div className="px-4 py-3">
-                        <div className="grid grid-cols-2 gap-4 mb-3">
+                      {/* Enhanced Content */}
+                      <div className="px-4 py-4">
+                        <div className="grid grid-cols-2 gap-4 mb-4">
                           {/* Blood Pressure */}
                           <div className="text-center">
-                            <div className="bg-slate-50 rounded-lg p-3">
-                              <div className="flex items-baseline justify-center gap-1 mb-1">
-                                <span className="text-xl font-black text-slate-900">{reading.systolic}</span>
-                                <span className="text-slate-400 font-bold">/</span>
-                                <span className="text-lg font-bold text-slate-700">{reading.diastolic}</span>
+                            <div className="bg-gradient-to-br from-white to-slate-50/50 rounded-2xl p-4 shadow-lg border border-slate-200/60 group-hover:shadow-xl transition-all duration-300">
+                              <div className="flex items-baseline justify-center gap-1 mb-2">
+                                <span className="text-2xl font-black text-slate-900">{reading.systolic}</span>
+                                <span className="text-slate-400 text-lg font-bold">/</span>
+                                <span className="text-xl font-bold text-slate-700">{reading.diastolic}</span>
                               </div>
-                              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">mmHg</div>
+                              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">mmHg</div>
+                              <div className={`mt-2 px-2 py-1 rounded-full text-[10px] font-bold ${isOverTarget ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                {reading.systolic > targets.systolic ? '+' : ''}{reading.systolic - targets.systolic}/{reading.diastolic > targets.diastolic ? '+' : ''}{reading.diastolic - targets.diastolic}
+                              </div>
                             </div>
                           </div>
                           
                           {/* Pulse */}
                           <div className="text-center">
-                            <div className="bg-slate-50 rounded-lg p-3">
-                              <div className="text-xl font-bold text-slate-900 mb-1">{reading.pulse}</div>
-                              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">BPM</div>
+                            <div className="bg-gradient-to-br from-white to-slate-50/50 rounded-2xl p-4 shadow-lg border border-slate-200/60 group-hover:shadow-xl transition-all duration-300">
+                              <div className="text-2xl font-black text-slate-900 mb-2">{reading.pulse}</div>
+                              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">BPM</div>
                             </div>
                           </div>
                         </div>
                         
                         {/* Notes */}
                         {reading.notes && (
-                          <div className="bg-slate-50/80 rounded-lg p-2 mb-3">
+                          <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-xl p-3 mb-4 border border-slate-200/60">
                             <p className="text-sm text-slate-700">{reading.notes}</p>
                           </div>
                         )}
                         
-                        {/* Actions */}
+                        {/* Enhanced Actions */}
                         <div className="flex items-center justify-between">
                           {!isSynced && onSyncReading && (
                             <button
                               onClick={() => onSyncReading(reading)}
-                              className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 transition-all duration-200 flex items-center gap-1"
+                              className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-xs font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 flex items-center gap-2"
                             >
                               <SyncIcon synced={false} />
                               Sync Now
@@ -631,17 +733,19 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                             {onEditReading && (
                               <button
                                 onClick={() => onEditReading(reading)}
-                                className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 transition-all duration-200"
+                                className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-200 flex items-center justify-center"
+                                title="Edit reading"
                               >
-                                Edit
+                                <EditIcon />
                               </button>
                             )}
                             {onDeleteReading && (
                               <button
                                 onClick={() => onDeleteReading(reading)}
-                                className="px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 transition-all duration-200"
+                                className="w-10 h-10 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-200 flex items-center justify-center"
+                                title="Delete reading"
                               >
-                                Delete
+                                <DeleteIcon />
                               </button>
                             )}
                           </div>
@@ -672,7 +776,7 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                 const mmin = String(md.getMinutes()).padStart(2,'0');
 
                 const isOverTarget = reading.systolic > targets.systolic || reading.diastolic > targets.diastolic;
-                const isSynced = syncedReadingIds.includes(String(reading.id));
+                const isSynced = reading.synced_to_calendar || false;
                 return (
                   <div key={reading.id} className={`relative rounded-2xl shadow-lg border border-slate-200/60 overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:-translate-y-2 ${getStatusBg(assessment.level)} animate-fadeInUp`}>
                     {/* Status Indicator Bar */}

@@ -1,4 +1,5 @@
 import type { BloodPressureReading, GoogleCalendarSync } from '../types';
+import { bloodPressureService } from './bloodPressureService';
 
 // OAuth 2.0 configuration - should be set in environment variables
 const getGoogleClientId = () => import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
@@ -283,6 +284,15 @@ class GoogleCalendarSyncService {
     }
     
     const data = await response.json();
+    
+    // Mark the reading as synced in the database
+    try {
+      await bloodPressureService.markAsSynced(String(reading.id));
+    } catch (dbError) {
+      console.error('Failed to mark reading as synced in database:', dbError);
+      // Don't throw - the calendar event was created successfully
+    }
+    
     return data.id;
   }
   
@@ -355,12 +365,15 @@ class GoogleCalendarSyncService {
       const eventId = searchData.items[0].id;
       await this.deleteEvent(eventId, syncConfig);
       
-      // Remove from synced reading IDs
-      const updatedSyncedIds = (syncConfig.syncedReadingIds || []).filter(id => id !== String(readingId));
+      // Mark the reading as not synced in the database
+      try {
+        await bloodPressureService.markAsUnsynced(String(readingId));
+      } catch (dbError) {
+        console.error('Failed to mark reading as unsynced in database:', dbError);
+      }
       
       return {
         ...syncConfig,
-        syncedReadingIds: updatedSyncedIds,
         lastSyncedAt: new Date().toISOString(),
       };
     }
@@ -407,51 +420,34 @@ class GoogleCalendarSyncService {
     syncConfig: GoogleCalendarSync,
     onProgress?: (current: number, total: number) => void
   ): Promise<GoogleCalendarSync> {
-    const syncedIds = new Set(syncConfig.syncedReadingIds || []);
+    // Filter readings that are not already synced in the database
+    const unsyncedReadings = readings.filter(r => !r.synced_to_calendar);
     
-    // First, check which readings actually exist in the calendar
-    // This prevents duplicates when sync tracking is lost
-    let actuallySyncedIds = new Set<string>();
-    
-    console.log('Checking for existing calendar events to prevent duplicates...');
-    for (const reading of readings) {
-      const readingIdStr = String(reading.id);
-      if (syncedIds.has(readingIdStr)) {
-        // Already marked as synced, but verify it exists in calendar
-        const existsInCalendar = await this.checkReadingExists(reading.id, syncConfig);
-        if (existsInCalendar) {
-          actuallySyncedIds.add(readingIdStr);
-        }
-      }
-    }
-    
-    // Find readings that need to be synced (not in our tracked list AND not in calendar)
-    const readingsToCheck = readings.filter(r => !syncedIds.has(String(r.id)));
-    for (const reading of readingsToCheck) {
-      const existsInCalendar = await this.checkReadingExists(reading.id, syncConfig);
-      if (existsInCalendar) {
-        actuallySyncedIds.add(String(reading.id));
-      }
-    }
-    
-    // Now find truly unsynced readings
-    const unsyncedReadings = readings.filter(r => !actuallySyncedIds.has(String(r.id)));
-    
-    console.log(`Found ${actuallySyncedIds.size} already synced readings, ${unsyncedReadings.length} to sync`);
+    console.log(`Found ${readings.length - unsyncedReadings.length} already synced readings, ${unsyncedReadings.length} to sync`);
     
     if (unsyncedReadings.length === 0) {
       return {
         ...syncConfig,
-        syncedReadingIds: Array.from(actuallySyncedIds),
         lastSyncedAt: new Date().toISOString(),
       };
     }
     
     let synced = 0;
+    const successfulIds: string[] = [];
+    
     for (const reading of unsyncedReadings) {
       try {
-        await this.createEvent(reading, syncConfig);
-        actuallySyncedIds.add(String(reading.id));
+        // Check if it exists in calendar (in case database is out of sync)
+        const existsInCalendar = await this.checkReadingExists(reading.id, syncConfig);
+        
+        if (!existsInCalendar) {
+          await this.createEvent(reading, syncConfig);
+        } else {
+          // Already in calendar, just update database
+          await bloodPressureService.markAsSynced(String(reading.id));
+        }
+        
+        successfulIds.push(String(reading.id));
         synced++;
         
         if (onProgress) {
@@ -465,7 +461,6 @@ class GoogleCalendarSyncService {
     
     return {
       ...syncConfig,
-      syncedReadingIds: Array.from(actuallySyncedIds),
       lastSyncedAt: new Date().toISOString(),
     };
   }
@@ -541,15 +536,21 @@ class GoogleCalendarSyncService {
   ): Promise<GoogleCalendarSync> {
     console.log('Rebuilding sync tracking from existing calendar events...');
     
-    const syncedReadingIds: string[] = [];
     let processed = 0;
+    let synced = 0;
     
     for (const reading of readings) {
       try {
         const exists = await this.checkReadingExists(reading.id, syncConfig);
-        if (exists) {
-          syncedReadingIds.push(String(reading.id));
+        
+        // Update database to match calendar state
+        if (exists && !reading.synced_to_calendar) {
+          await bloodPressureService.markAsSynced(String(reading.id));
+          synced++;
+        } else if (!exists && reading.synced_to_calendar) {
+          await bloodPressureService.markAsUnsynced(String(reading.id));
         }
+        
         processed++;
         
         // Log progress every 10 readings
@@ -561,11 +562,10 @@ class GoogleCalendarSyncService {
       }
     }
     
-    console.log(`Rebuilt sync tracking: ${syncedReadingIds.length}/${readings.length} readings found in calendar`);
+    console.log(`Rebuilt sync tracking: ${synced} readings synced to database`);
     
     return {
       ...syncConfig,
-      syncedReadingIds,
       lastSyncedAt: new Date().toISOString(),
     };
   }
