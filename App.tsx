@@ -657,6 +657,9 @@ const MainApp: React.FC = () => {
             googleCalendarSync: updatedConfig,
           }));
           
+          // Refresh readings to show updated sync status
+          await loadReadings();
+          
           console.log('Reading auto-synced successfully!');
           
           // Show success message with auto-sync
@@ -716,6 +719,9 @@ const MainApp: React.FC = () => {
         googleCalendarSync: updatedConfig,
       }));
       
+      // Refresh readings to show updated sync status
+      await loadReadings();
+      
       // Update success message and remove action button
       setSuccess('Reading synced to Google Calendar successfully!');
       setSuccessAction(null);
@@ -753,6 +759,9 @@ const MainApp: React.FC = () => {
         ...prev,
         googleCalendarSync: updatedConfig,
       }));
+      
+      // Refresh readings to show updated sync status
+      await loadReadings();
       
       // Update success message and remove action button
       setSuccess(`${readings.length} reading(s) synced to Google Calendar successfully!`);

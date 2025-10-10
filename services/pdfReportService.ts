@@ -122,6 +122,8 @@ export class PDFReportService {
   public async generateReport(options: PDFReportOptions): Promise<Blob> {
     const { readings, patientName, dateRange, targets, includeCharts = true } = options;
 
+    console.log(`Generating PDF report with ${readings.length} readings, includeCharts: ${includeCharts}`);
+
     // Reset position
     this.currentY = this.margin;
 
@@ -133,7 +135,10 @@ export class PDFReportService {
 
     // Add charts if requested
     if (includeCharts) {
+      console.log('Adding visual charts to PDF...');
       await this.addCharts(readings);
+    } else {
+      console.log('Skipping charts as requested');
     }
 
     // Add detailed readings table
@@ -145,6 +150,7 @@ export class PDFReportService {
     // Add footer
     this.addFooter();
 
+    console.log('PDF generation completed successfully');
     return this.doc.output('blob');
   }
 
@@ -290,10 +296,222 @@ export class PDFReportService {
     // Add section title
     this.addSectionTitle('Blood Pressure Trends');
 
-    // Create a simple text-based chart representation
+    try {
+      console.log('Starting chart generation...');
+      
+      // Create a temporary container for charts
+      const chartContainer = document.createElement('div');
+      chartContainer.style.position = 'absolute';
+      chartContainer.style.left = '-9999px';
+      chartContainer.style.top = '0';
+      chartContainer.style.width = '800px';
+      chartContainer.style.height = '600px';
+      chartContainer.style.backgroundColor = 'white';
+      document.body.appendChild(chartContainer);
+
+      // Generate chart data
+      const chartData = this.prepareChartData(readings);
+      console.log('Chart data prepared:', chartData);
+      
+      // Create chart canvas elements
+      console.log('Creating systolic chart...');
+      const systolicChart = await this.createChartCanvas('systolic', chartData, '#BF092F', '#132440');
+      console.log('Creating diastolic chart...');
+      const diastolicChart = await this.createChartCanvas('diastolic', chartData, '#16476A', '#3B9797');
+      console.log('Creating pulse chart...');
+      const pulseChart = await this.createChartCanvas('pulse', chartData, '#3B9797', '#132440');
+
+      // Add charts to PDF
+      const chartHeight = 80; // mm
+      const chartWidth = 150; // mm
+
+      // Systolic Chart
+      if (systolicChart) {
+        this.doc.addImage(systolicChart, 'PNG', this.margin, this.currentY, chartWidth, chartHeight);
+        this.doc.setFontSize(10);
+        this.doc.setTextColor(75, 85, 99);
+        this.doc.text('Systolic Blood Pressure Trend', this.margin, this.currentY - 5);
+        this.currentY += chartHeight + 15;
+      }
+
+      // Diastolic Chart
+      if (diastolicChart) {
+        this.doc.addImage(diastolicChart, 'PNG', this.margin, this.currentY, chartWidth, chartHeight);
+        this.doc.setFontSize(10);
+        this.doc.setTextColor(75, 85, 99);
+        this.doc.text('Diastolic Blood Pressure Trend', this.margin, this.currentY - 5);
+        this.currentY += chartHeight + 15;
+      }
+
+      // Pulse Chart
+      if (pulseChart) {
+        this.doc.addImage(pulseChart, 'PNG', this.margin, this.currentY, chartWidth, chartHeight);
+        this.doc.setFontSize(10);
+        this.doc.setTextColor(75, 85, 99);
+        this.doc.text('Pulse Rate Trend', this.margin, this.currentY - 5);
+        this.currentY += chartHeight + 15;
+      }
+
+      // Clean up
+      document.body.removeChild(chartContainer);
+
+    } catch (error) {
+      console.error('Error generating charts for PDF:', error);
+      
+      // Fallback to simple text representation
+      this.addFallbackCharts(readings);
+    }
+
+    this.currentY += 10;
+  }
+
+  private prepareChartData(readings: BloodPressureReading[]) {
+    const sortedReadings = [...readings].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const recentReadings = sortedReadings.slice(-20); // Last 20 readings
+
+    return {
+      labels: recentReadings.map(r => {
+        const date = new Date(r.date);
+        return `${date.getMonth() + 1}/${date.getDate()}`;
+      }),
+      systolic: recentReadings.map(r => r.systolic),
+      diastolic: recentReadings.map(r => r.diastolic),
+      pulse: recentReadings.map(r => r.pulse)
+    };
+  }
+
+  private async createChartCanvas(type: 'systolic' | 'diastolic' | 'pulse', chartData: any, primaryColor: string, secondaryColor: string): Promise<string | null> {
+    try {
+      console.log(`Creating ${type} chart with ${chartData[type]?.length || 0} data points`);
+      
+      // Create canvas element
+      const canvas = document.createElement('canvas');
+      canvas.width = 800;
+      canvas.height = 400;
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        console.error(`Failed to get 2D context for ${type} chart`);
+        return null;
+      }
+
+      // Set background
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Chart dimensions
+      const padding = { top: 40, right: 40, bottom: 60, left: 60 };
+      const chartWidth = canvas.width - padding.left - padding.right;
+      const chartHeight = canvas.height - padding.top - padding.bottom;
+
+      // Get data
+      const data = chartData[type];
+      const labels = chartData.labels;
+      
+      if (!data || data.length === 0) return null;
+
+      // Calculate scales
+      const minValue = Math.min(...data) - 10;
+      const maxValue = Math.max(...data) + 10;
+      const valueRange = maxValue - minValue;
+
+      // Draw grid lines
+      ctx.strokeStyle = '#e5e7eb';
+      ctx.lineWidth = 1;
+      
+      // Horizontal grid lines
+      for (let i = 0; i <= 5; i++) {
+        const y = padding.top + (chartHeight / 5) * i;
+        ctx.beginPath();
+        ctx.moveTo(padding.left, y);
+        ctx.lineTo(padding.left + chartWidth, y);
+        ctx.stroke();
+      }
+
+      // Vertical grid lines
+      for (let i = 0; i <= 10; i++) {
+        const x = padding.left + (chartWidth / 10) * i;
+        ctx.beginPath();
+        ctx.moveTo(x, padding.top);
+        ctx.lineTo(x, padding.top + chartHeight);
+        ctx.stroke();
+      }
+
+      // Draw data line
+      ctx.strokeStyle = primaryColor;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+
+      data.forEach((value: number, index: number) => {
+        const x = padding.left + (chartWidth / (data.length - 1)) * index;
+        const y = padding.top + chartHeight - ((value - minValue) / valueRange) * chartHeight;
+
+        if (index === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      });
+      ctx.stroke();
+
+      // Draw data points
+      ctx.fillStyle = primaryColor;
+      data.forEach((value: number, index: number) => {
+        const x = padding.left + (chartWidth / (data.length - 1)) * index;
+        const y = padding.top + chartHeight - ((value - minValue) / valueRange) * chartHeight;
+
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, 2 * Math.PI);
+        ctx.fill();
+
+        // White center
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.fillStyle = primaryColor;
+      });
+
+      // Draw labels
+      ctx.fillStyle = '#374151';
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      
+      // X-axis labels (dates)
+      labels.forEach((label: string, index: number) => {
+        if (index % Math.ceil(labels.length / 10) === 0) {
+          const x = padding.left + (chartWidth / (data.length - 1)) * index;
+          ctx.fillText(label, x, padding.top + chartHeight + 20);
+        }
+      });
+
+      // Y-axis labels (values)
+      ctx.textAlign = 'right';
+      for (let i = 0; i <= 5; i++) {
+        const value = minValue + (valueRange / 5) * (5 - i);
+        const y = padding.top + (chartHeight / 5) * i;
+        ctx.fillText(Math.round(value).toString(), padding.left - 10, y + 4);
+      }
+
+      // Title
+      ctx.fillStyle = '#1f2937';
+      ctx.font = 'bold 16px Arial';
+      ctx.textAlign = 'center';
+      const title = type === 'systolic' ? 'Systolic BP' : type === 'diastolic' ? 'Diastolic BP' : 'Pulse Rate';
+      const unit = type === 'pulse' ? 'BPM' : 'mmHg';
+      ctx.fillText(`${title} (${unit})`, canvas.width / 2, 25);
+
+      return canvas.toDataURL('image/png');
+    } catch (error) {
+      console.error(`Error creating ${type} chart:`, error);
+      return null;
+    }
+  }
+
+  private addFallbackCharts(readings: BloodPressureReading[]) {
+    // Fallback to simple text-based chart representation
     const recentReadings = readings.slice(-10); // Last 10 readings
     
-    // Add trend analysis
     this.doc.setFontSize(12);
     this.doc.setFont('helvetica', 'bold');
     this.doc.text(encodeText('Recent Trend Analysis:'), this.margin, this.currentY);
@@ -322,8 +540,6 @@ export class PDFReportService {
       
       this.currentY += 6;
     });
-
-    this.currentY += 10;
   }
 
   private addReadingsTable(readings: BloodPressureReading[]) {

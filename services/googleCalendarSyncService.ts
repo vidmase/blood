@@ -269,6 +269,9 @@ class GoogleCalendarSyncService {
     const calendarId = syncConfig.calendarId || 'primary';
     const event = formatReadingEvent(reading);
     
+    console.log(`Creating calendar event for reading ${reading.id} (${reading.systolic}/${reading.diastolic})`);
+    console.log('Event data:', event);
+    
     const response = await fetch(`${CALENDAR_API_BASE}/calendars/${calendarId}/events`, {
       method: 'POST',
       headers: {
@@ -280,14 +283,17 @@ class GoogleCalendarSyncService {
     
     if (!response.ok) {
       const error = await response.json();
+      console.error('Failed to create calendar event:', error);
       throw new Error(`Failed to create event: ${error.error?.message || 'Unknown error'}`);
     }
     
     const data = await response.json();
+    console.log(`Calendar event created successfully with ID: ${data.id}`);
     
     // Mark the reading as synced in the database
     try {
       await bloodPressureService.markAsSynced(String(reading.id));
+      console.log(`Reading ${reading.id} marked as synced in database`);
     } catch (dbError) {
       console.error('Failed to mark reading as synced in database:', dbError);
       // Don't throw - the calendar event was created successfully
@@ -420,12 +426,20 @@ class GoogleCalendarSyncService {
     syncConfig: GoogleCalendarSync,
     onProgress?: (current: number, total: number) => void
   ): Promise<GoogleCalendarSync> {
+    console.log(`Starting sync for ${readings.length} readings`);
+    console.log('Sync config:', { 
+      enabled: syncConfig.enabled, 
+      calendarId: syncConfig.calendarId,
+      hasAccessToken: !!syncConfig.accessToken 
+    });
+    
     // Filter readings that are not already synced in the database
     const unsyncedReadings = readings.filter(r => !r.synced_to_calendar);
     
     console.log(`Found ${readings.length - unsyncedReadings.length} already synced readings, ${unsyncedReadings.length} to sync`);
     
     if (unsyncedReadings.length === 0) {
+      console.log('No readings to sync - all already synced');
       return {
         ...syncConfig,
         lastSyncedAt: new Date().toISOString(),
@@ -437,12 +451,16 @@ class GoogleCalendarSyncService {
     
     for (const reading of unsyncedReadings) {
       try {
+        console.log(`Syncing reading ${reading.id} (${reading.systolic}/${reading.diastolic})`);
+        
         // Check if it exists in calendar (in case database is out of sync)
         const existsInCalendar = await this.checkReadingExists(reading.id, syncConfig);
         
         if (!existsInCalendar) {
+          console.log(`Reading ${reading.id} not in calendar, creating event`);
           await this.createEvent(reading, syncConfig);
         } else {
+          console.log(`Reading ${reading.id} already in calendar, updating database only`);
           // Already in calendar, just update database
           await bloodPressureService.markAsSynced(String(reading.id));
         }
@@ -458,6 +476,8 @@ class GoogleCalendarSyncService {
         // Continue with other readings
       }
     }
+    
+    console.log(`Sync completed: ${synced}/${unsyncedReadings.length} readings synced successfully`);
     
     return {
       ...syncConfig,

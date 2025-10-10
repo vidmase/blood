@@ -382,13 +382,6 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                     <span className="sm:hidden">PDF</span>
                   </button>
 
-                  {/* ESH Classification Button */}
-                  <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-[#16476A] text-[#16476A] text-sm font-medium rounded-lg hover:bg-[#e8f1f5] transition-colors duration-150 h-10">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    ESH Guide
-                  </button>
                   
                   {/* Show Dropdown */}
                   <div className="flex items-center gap-2 h-10">
@@ -405,11 +398,6 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                     </select>
                   </div>
                   
-                  {/* Latest Data Indicator */}
-                  <div className="hidden sm:flex items-center gap-2 h-10">
-                    <div className="w-3 h-3 rounded-full bg-gradient-to-r from-[#16476A] to-[#132440]"></div>
-                    <span className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('table.latestData')}</span>
-                  </div>
                   
                   {/* Current Targets Chip */}
                   <div className="hidden sm:flex items-center h-10">
