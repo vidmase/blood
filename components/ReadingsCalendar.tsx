@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import type { BloodPressureReading } from '../types';
 import { useLocalization } from '../context/LocalizationContext';
-import { GoogleCalendarExportModal } from './GoogleCalendarExportModal';
 import { classifyBloodPressure } from '../utils/bpClassification';
 
 interface ReadingsCalendarProps {
@@ -120,7 +119,6 @@ export const ReadingsCalendar: React.FC<ReadingsCalendarProps> = ({ readings, on
   const { t, language } = useLocalization();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [hoveredDay, setHoveredDay] = useState<number | null>(null);
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   
   const dateLocale = language === 'lt' ? 'lt-LT' : 'en-US';
 
@@ -267,16 +265,6 @@ export const ReadingsCalendar: React.FC<ReadingsCalendarProps> = ({ readings, on
                     Today
                   </button>
                 </div>
-                <button
-                  onClick={() => setIsExportModalOpen(true)}
-                  className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-white/20 text-white hover:bg-white/30 rounded-full transition-all duration-300 font-bold backdrop-blur-sm border border-white/30 hover:scale-105 transform active:scale-95 shadow-lg"
-                  title="Export to Google Calendar"
-                >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V9h14v10zm0-12H5V5h14v2zM7 11h5v5H7z"/>
-                  </svg>
-                  <span className="hidden sm:inline">Export</span>
-                </button>
               </div>
             </div>
             
@@ -444,13 +432,6 @@ export const ReadingsCalendar: React.FC<ReadingsCalendarProps> = ({ readings, on
         </div>
       </div>
 
-      {/* Google Calendar Export Modal */}
-      <GoogleCalendarExportModal
-        isOpen={isExportModalOpen}
-        onClose={() => setIsExportModalOpen(false)}
-        readings={readings}
-        currentMonth={currentDate}
-      />
     </div>
   );
 };

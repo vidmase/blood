@@ -12,6 +12,7 @@ interface UnifiedSettingsModalProps {
   onClose: () => void;
   onSave: (profile: UserProfile, settings: AppSettings) => void;
   onClearData: () => void;
+  onRefreshReadings?: () => void;
   currentProfile: UserProfile;
   currentSettings: AppSettings;
   readings?: BloodPressureReading[];
@@ -24,6 +25,7 @@ export const UnifiedSettingsModal: React.FC<UnifiedSettingsModalProps> = ({
   onClose,
   onSave,
   onClearData,
+  onRefreshReadings,
   currentProfile,
   currentSettings,
   readings = [],
@@ -308,7 +310,7 @@ export const UnifiedSettingsModal: React.FC<UnifiedSettingsModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-4 sm:px-6 py-4 sm:py-5 flex justify-between items-center">
+        <div className="bg-gradient-to-r from-[#16476A] via-[#132440] to-[#3B9797] px-4 sm:px-6 py-4 sm:py-5 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
               <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -427,7 +429,7 @@ export const UnifiedSettingsModal: React.FC<UnifiedSettingsModalProps> = ({
                 <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700">
                   <button
                     onClick={handleSaveProfile}
-                    className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all shadow-lg"
+                    className="px-6 py-2 bg-gradient-to-r from-[#16476A] to-[#132440] text-white font-semibold rounded-lg hover:from-[#1a5680] hover:to-[#16476A] focus:outline-none focus:ring-2 focus:ring-[#3B9797] focus:ring-offset-2 transition-all shadow-lg"
                   >
                     Save Changes
                   </button>
@@ -534,7 +536,7 @@ export const UnifiedSettingsModal: React.FC<UnifiedSettingsModalProps> = ({
                     <button
                       type="submit"
                       disabled={updateLoading}
-                      className="flex-1 px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 transition-all shadow-lg"
+                      className="flex-1 px-6 py-2 bg-gradient-to-r from-[#16476A] to-[#132440] text-white font-semibold rounded-lg hover:from-[#1a5680] hover:to-[#16476A] focus:outline-none focus:ring-2 focus:ring-[#3B9797] focus:ring-offset-2 disabled:opacity-50 transition-all shadow-lg"
                     >
                       {updateLoading ? 'Updating...' : 'Update Account'}
                     </button>
@@ -596,7 +598,7 @@ export const UnifiedSettingsModal: React.FC<UnifiedSettingsModalProps> = ({
                 <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700">
                   <button
                     onClick={handleSaveProfile}
-                    className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all shadow-lg"
+                    className="px-6 py-2 bg-gradient-to-r from-[#16476A] to-[#132440] text-white font-semibold rounded-lg hover:from-[#1a5680] hover:to-[#16476A] focus:outline-none focus:ring-2 focus:ring-[#3B9797] focus:ring-offset-2 transition-all shadow-lg"
                   >
                     Save Preferences
                   </button>
@@ -689,7 +691,7 @@ export const UnifiedSettingsModal: React.FC<UnifiedSettingsModalProps> = ({
                     <button
                       type="submit"
                       disabled={targetsLoading}
-                      className="flex-1 px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 transition-all shadow-lg"
+                      className="flex-1 px-6 py-2 bg-gradient-to-r from-[#16476A] to-[#132440] text-white font-semibold rounded-lg hover:from-[#1a5680] hover:to-[#16476A] focus:outline-none focus:ring-2 focus:ring-[#3B9797] focus:ring-offset-2 disabled:opacity-50 transition-all shadow-lg"
                     >
                       {targetsLoading ? 'Saving...' : 'Save Targets'}
                     </button>
@@ -722,7 +724,13 @@ export const UnifiedSettingsModal: React.FC<UnifiedSettingsModalProps> = ({
                     setSettings(updatedSettings);
                     onSave(profile, updatedSettings);
                   }}
-                  onSuccess={(message) => setSuccess(message)}
+                  onSuccess={(message) => {
+                    setSuccess(message);
+                    // Refresh readings data after sync operations
+                    if (onRefreshReadings) {
+                      onRefreshReadings();
+                    }
+                  }}
                   onError={(message) => setError(message)}
                 />
               </Suspense>

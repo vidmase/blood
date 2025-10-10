@@ -40,13 +40,13 @@ const TrendIcon: React.FC<{ trend: AnalysisData['overallTrend']['trend'] }> = ({
     const iconClass = "w-6 h-6 mr-3";
     switch (trend) {
         case 'Increasing':
-            return <svg xmlns="http://www.w3.org/2000/svg" className={`${iconClass} text-red-500`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>;
+            return <svg xmlns="http://www.w3.org/2000/svg" className={`${iconClass} text-[#BF092F]`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>;
         case 'Decreasing':
-            return <svg xmlns="http://www.w3.org/2000/svg" className={`${iconClass} text-green-500`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17l-5-5m0 0l5-5m-5 5h12" /></svg>;
+            return <svg xmlns="http://www.w3.org/2000/svg" className={`${iconClass} text-[#3B9797]`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17l-5-5m0 0l5-5m-5 5h12" /></svg>;
         case 'Stable':
-            return <svg xmlns="http://www.w3.org/2000/svg" className={`${iconClass} text-blue-500`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>;
+            return <svg xmlns="http://www.w3.org/2000/svg" className={`${iconClass} text-[#16476A]`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>;
         case 'Fluctuating':
-            return <svg xmlns="http://www.w3.org/2000/svg" className={`${iconClass} text-yellow-500`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>;
+            return <svg xmlns="http://www.w3.org/2000/svg" className={`${iconClass} text-[#132440]`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>;
         default:
             return null;
     }
@@ -57,14 +57,14 @@ const ObservationIcon: React.FC<{ type: AnalysisData['observations'][0]['type'] 
      switch (type) {
         case 'High Systolic':
         case 'High Diastolic':
-             return <svg xmlns="http://www.w3.org/2000/svg" className={`${iconClass} text-red-500`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>;
+             return <svg xmlns="http://www.w3.org/2000/svg" className={`${iconClass} text-[#BF092F]`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>;
         case 'Low Systolic':
         case 'Low Diastolic':
-            return <svg xmlns="http://www.w3.org/2000/svg" className={`${iconClass} text-blue-500`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+            return <svg xmlns="http://www.w3.org/2000/svg" className={`${iconClass} text-[#7DD3D3]`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
         case 'Pulse Rate':
-             return <svg xmlns="http://www.w3.org/2000/svg" className={`${iconClass} text-pink-500`} fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" /></svg>;
+             return <svg xmlns="http://www.w3.org/2000/svg" className={`${iconClass} text-[#3B9797]`} fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" /></svg>;
         case 'Goal Achievement':
-            return <svg xmlns="http://www.w3.org/2000/svg" className={`${iconClass} text-green-500`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+            return <svg xmlns="http://www.w3.org/2000/svg" className={`${iconClass} text-[#3B9797]`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
         default:
             return <svg xmlns="http://www.w3.org/2000/svg" className={`${iconClass} text-slate-400`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.933 12.8a1 1 0 000-1.6L6.6 7.2A1 1 0 005 8v8a1 1 0 001.6.8l5.333-4zM19.933 12.8a1 1 0 000-1.6l-5.333-4A1 1 0 0013 8v8a1 1 0 001.6.8l5.333-4z" /></svg>;
     }
@@ -73,7 +73,7 @@ const ObservationIcon: React.FC<{ type: AnalysisData['observations'][0]['type'] 
 const TrendDetail: React.FC<{ label: string; comparison: TrendComparison }> = ({ label, comparison }) => {
     const isUp = comparison.direction === 'up';
     const isDown = comparison.direction === 'down';
-    const colorClasses = isUp ? 'text-red-500' : isDown ? 'text-green-500' : 'text-slate-500';
+    const colorClasses = isUp ? 'text-[#BF092F]' : isDown ? 'text-[#3B9797]' : 'text-slate-500';
 
     return (
         <div className="bg-slate-50/70 dark:bg-gray-700/50 p-3 rounded-lg flex-1">

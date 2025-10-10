@@ -8,7 +8,7 @@ import type { BloodPressureReading } from '../types';
 const HeartbeatIcon: React.FC = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    className="h-9 w-9 text-rose-500 animate-pulse-heart"
+    className="h-9 w-9 text-[#BF092F] animate-pulse-heart"
     viewBox="0 0 24 24"
     fill="currentColor"
     style={{ animationDuration: '2.5s' }}
@@ -94,7 +94,7 @@ export const Header: React.FC<HeaderProps> = ({ userName, onOpenSettings, onAnal
               <div className="flex items-center space-x-2">
                 <button
                   onClick={onOpenSettings}
-                  className="flex items-center gap-2 px-3 py-2 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-semibold hover:from-indigo-700 hover:to-purple-700 active:scale-95 transition-all duration-200 shadow-md"
+                  className="flex items-center gap-2 px-3 py-2 rounded-full bg-gradient-to-r from-[#16476A] to-[#132440] text-white text-sm font-semibold hover:from-[#1a5680] hover:to-[#16476A] active:scale-95 transition-all duration-200 shadow-md"
                   aria-label="Settings"
                   title="Settings"
                 >
@@ -160,7 +160,7 @@ export const Header: React.FC<HeaderProps> = ({ userName, onOpenSettings, onAnal
                   </span>
                   <button
                     onClick={onOpenSettings}
-                    className="flex items-center gap-2 xl:gap-3 px-4 xl:px-5 py-2 xl:py-2.5 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm xl:text-base font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                    className="flex items-center gap-2 xl:gap-3 px-4 xl:px-5 py-2 xl:py-2.5 rounded-full bg-gradient-to-r from-[#16476A] to-[#132440] text-white text-sm xl:text-base font-semibold hover:from-[#1a5680] hover:to-[#16476A] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
                     aria-label="Settings"
                     title="Settings"
                   >

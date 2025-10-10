@@ -5,6 +5,7 @@ import { useLocalization } from '../context/LocalizationContext';
 import { useUserSettings } from '../context/UserSettingsContext';
 import { classifyReading } from '../utils/bpClassification';
 import { ESHClassificationButton } from './ESHClassificationButton';
+import { PDFDownloadModal } from './PDFDownloadModal';
 
 interface ReadingsTableProps {
   readings: BloodPressureReading[];
@@ -87,6 +88,7 @@ const TrendDownIcon: React.FC<{ className?: string }> = ({ className = "h-3 w-3"
 // Maps ESH classification to table display format
 const getBloodPressureAssessment = (systolic: number, diastolic: number): {
   category: string;
+  categoryShort: string;
   level: 'low' | 'normal' | 'elevated' | 'stage1' | 'stage2' | 'crisis';
   color: string;
   bgColor: string;
@@ -124,25 +126,12 @@ const getBloodPressureAssessment = (systolic: number, diastolic: number): {
       break;
   }
   
-  // Map ESH colors to Tailwind text/bg classes
-  const getColorClasses = (color: string) => {
-    if (color.includes('#991b1b') || color.includes('#dc2626')) return { text: 'text-red-900', bg: 'bg-red-100' };
-    if (color.includes('#f87171')) return { text: 'text-red-700', bg: 'bg-red-50' };
-    if (color.includes('#fb923c') || color.includes('#f97316')) return { text: 'text-orange-700', bg: 'bg-orange-50' };
-    if (color.includes('#fbbf24')) return { text: 'text-amber-700', bg: 'bg-amber-50' };
-    if (color.includes('#60a5fa')) return { text: 'text-blue-700', bg: 'bg-blue-50' };
-    if (color.includes('#84cc16')) return { text: 'text-lime-700', bg: 'bg-lime-50' };
-    if (color.includes('#10b981')) return { text: 'text-emerald-700', bg: 'bg-emerald-50' };
-    return { text: 'text-slate-700', bg: 'bg-slate-50' };
-  };
-  
-  const colors = getColorClasses(eshCategory.color);
-  
   return {
     category: eshCategory.category,
+    categoryShort: eshCategory.categoryShort,
     level,
-    color: colors.text,
-    bgColor: colors.bg,
+    color: eshCategory.color,
+    bgColor: '', 
     description: eshCategory.description
   };
 };
@@ -164,81 +153,81 @@ const getStatusIndicator = (value: number, type: 'systolic' | 'diastolic'): {
     // ESH Systolic Thresholds
     if (value >= 220) {
       indicator = <TrendUpIcon className="h-3 w-3" />;
-      textColor = 'text-red-900';
-      bgColor = 'bg-red-100';
+      textColor = '#8A051F';
+      bgColor = 'bg-[#8A051F]/10';
       level = 'critical';
     } else if (value >= 180) {
       indicator = <TrendUpIcon className="h-3 w-3" />;
-      textColor = 'text-red-800';
-      bgColor = 'bg-red-100';
+      textColor = '#A00726';
+      bgColor = 'bg-[#A00726]/10';
       level = 'critical';
     } else if (value >= 160) {
       indicator = <TrendUpIcon className="h-3 w-3" />;
-      textColor = 'text-red-700';
-      bgColor = 'bg-red-50';
+      textColor = '#BF092F';
+      bgColor = 'bg-[#BF092F]/10';
       level = 'critical';
     } else if (value >= 140) {
       indicator = <TrendUpIcon className="h-3 w-3" />;
-      textColor = 'text-orange-700';
-      bgColor = 'bg-orange-50';
+      textColor = '#132440';
+      bgColor = 'bg-[#132440]/10';
       level = 'high';
     } else if (value >= 130) {
       indicator = <TrendUpIcon className="h-3 w-3" />;
-      textColor = 'text-amber-700';
-      bgColor = 'bg-amber-50';
+      textColor = '#16476A';
+      bgColor = 'bg-[#16476A]/10';
       level = 'elevated';
     } else if (value >= 120) {
-      textColor = 'text-lime-700';
-      bgColor = 'bg-lime-50';
+      textColor = '#5BC0C0';
+      bgColor = 'bg-[#5BC0C0]/10';
       level = 'normal';
     } else if (value < 90) {
       indicator = <TrendDownIcon className="h-3 w-3" />;
-      textColor = 'text-blue-700';
-      bgColor = 'bg-blue-50';
+      textColor = '#7DD3D3';
+      bgColor = 'bg-[#7DD3D3]/10';
       level = 'normal';
     } else {
-      textColor = 'text-emerald-700';
-      bgColor = 'bg-emerald-50';
+      textColor = '#3B9797';
+      bgColor = 'bg-[#3B9797]/10';
       level = 'optimal';
     }
   } else { // diastolic - ESH Diastolic Thresholds
     if (value >= 120) {
       indicator = <TrendUpIcon className="h-3 w-3" />;
-      textColor = 'text-red-900';
-      bgColor = 'bg-red-100';
+      textColor = '#8A051F';
+      bgColor = 'bg-[#8A051F]/10';
       level = 'critical';
     } else if (value >= 110) {
       indicator = <TrendUpIcon className="h-3 w-3" />;
-      textColor = 'text-red-800';
-      bgColor = 'bg-red-100';
+      textColor = '#A00726';
+      bgColor = 'bg-[#A00726]/10';
       level = 'critical';
     } else if (value >= 100) {
       indicator = <TrendUpIcon className="h-3 w-3" />;
-      textColor = 'text-red-700';
-      bgColor = 'bg-red-50';
+      textColor = '#BF092F';
+      bgColor = 'bg-[#BF092F]/10';
       level = 'critical';
     } else if (value >= 90) {
       indicator = <TrendUpIcon className="h-3 w-3" />;
-      textColor = 'text-orange-700';
-      bgColor = 'bg-orange-50';
+      textColor = '#132440';
+      bgColor = 'bg-[#132440]/10';
       level = 'high';
     } else if (value >= 85) {
       indicator = <TrendUpIcon className="h-3 w-3" />;
-      textColor = 'text-amber-700';
-      bgColor = 'bg-amber-50';
+      textColor = '#16476A';
+      bgColor = 'bg-[#16476A]/10';
       level = 'elevated';
     } else if (value >= 80) {
-      textColor = 'text-lime-700';
-      bgColor = 'bg-lime-50';
+      textColor = '#5BC0C0';
+      bgColor = 'bg-[#5BC0C0]/10';
       level = 'normal';
     } else if (value < 60) {
       indicator = <TrendDownIcon className="h-3 w-3" />;
-      textColor = 'text-blue-700';
-      bgColor = 'bg-blue-50';
+      textColor = '#7DD3D3';
+      bgColor = 'bg-[#7DD3D3]/10';
       level = 'normal';
     } else {
-      textColor = 'text-emerald-700';
-      bgColor = 'bg-emerald-50';
+      textColor = '#3B9797';
+      bgColor = 'bg-[#3B9797]/10';
       level = 'optimal';
     }
   }
@@ -266,6 +255,7 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
   const { targets } = useUserSettings();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [showPDFModal, setShowPDFModal] = useState(false);
   
   const hasOriginalReadings = totalReadings > 0;
   const hasFilteredReadings = readings.length > 0;
@@ -301,12 +291,12 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
 
   const getBorderColor = (level: string) => {
     switch(level) {
-      case 'crisis': return 'border-red-500';
-      case 'stage2': return 'border-red-500';
-      case 'stage1': return 'border-orange-500';
-      case 'elevated': return 'border-amber-500';
-      case 'low': return 'border-blue-500';
-      default: return 'border-emerald-500';
+      case 'crisis': return 'border-[#BF092F]';
+      case 'stage2': return 'border-[#BF092F]';
+      case 'stage1': return 'border-[#132440]';
+      case 'elevated': return 'border-[#16476A]';
+      case 'low': return 'border-[#7DD3D3]';
+      default: return 'border-[#3B9797]';
     }
   };
 
@@ -351,7 +341,7 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
         {!hasFilteredReadings ? (
             <div className="text-center py-12 px-4 bg-gradient-to-br from-slate-50 to-indigo-50/30 rounded-2xl border-2 border-dashed border-slate-200">
                 <div className="mx-auto w-16 h-16 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-[#16476A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                 </div>
@@ -366,7 +356,7 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
         ) : (
           <div className="bg-gradient-to-br from-white to-slate-50/30 rounded-2xl shadow-lg border border-slate-200/60 overflow-hidden">
             {/* Modern Header */}
-            <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-slate-200/60 px-6 py-5">
+            <div className="bg-gradient-to-r from-[#e8f1f5] via-[#d5f0f0] to-[#e8f7f7] border-b border-slate-200/60 px-6 py-5">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <h3 className="text-2xl font-bold text-slate-900">{t('table.bloodPressureHistory')}</h3>
@@ -378,21 +368,35 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                     })}
                   </p>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3 flex-wrap">
+                  {/* PDF Download Button */}
+                  <button
+                    onClick={() => setShowPDFModal(true)}
+                    className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#BF092F] to-[#A00726] text-white text-sm font-medium rounded-lg hover:from-[#A00726] hover:to-[#8A051F] transition-all duration-200 shadow-lg hover:shadow-xl h-10"
+                    title="Generate professional PDF report"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span className="hidden sm:inline">Download PDF</span>
+                    <span className="sm:hidden">PDF</span>
+                  </button>
+
                   {/* ESH Classification Button */}
-                  <ESHClassificationButton variant="secondary" size="sm">
+                  <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-[#16476A] text-[#16476A] text-sm font-medium rounded-lg hover:bg-[#e8f1f5] transition-colors duration-150 h-10">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                     ESH Guide
-                  </ESHClassificationButton>
+                  </button>
                   
-                  <div className="flex items-center gap-2">
-                    <label className="text-xs font-medium text-slate-600">Show:</label>
+                  {/* Show Dropdown */}
+                  <div className="flex items-center gap-2 h-10">
+                    <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Show:</label>
                     <select
                       value={itemsPerPage}
                       onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
-                      className="px-2 py-1 text-xs border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="px-3 py-2.5 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#16476A] focus:border-[#16476A] h-10"
                     >
                       <option value={5}>5</option>
                       <option value={10}>10</option>
@@ -400,13 +404,16 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                       <option value={50}>50</option>
                     </select>
                   </div>
-                  <div className="hidden sm:flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"></div>
-                    <span className="text-xs font-medium text-slate-600">{t('table.latestData')}</span>
+                  
+                  {/* Latest Data Indicator */}
+                  <div className="hidden sm:flex items-center gap-2 h-10">
+                    <div className="w-3 h-3 rounded-full bg-gradient-to-r from-[#16476A] to-[#132440]"></div>
+                    <span className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('table.latestData')}</span>
                   </div>
+                  
                   {/* Current Targets Chip */}
-                  <div className="hidden sm:flex items-center">
-                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold text-indigo-700 bg-indigo-100 border border-indigo-200">
+                  <div className="hidden sm:flex items-center h-10">
+                    <span className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium text-[#16476A] bg-[#e8f1f5] border border-[#d1e3ed] whitespace-nowrap">
                       {t('table.currentTargets', { sys: targets.systolic, dia: targets.diastolic })}
                     </span>
                   </div>
@@ -415,10 +422,10 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                   {isGoogleCalendarConnected && unsyncedReadings.length > 0 && onBulkSync && (
                     <button
                       onClick={() => onBulkSync(unsyncedReadings)}
-                      className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-semibold rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                      className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-[#3B9797] text-white text-sm font-medium rounded-lg hover:bg-[#2A7272] transition-colors duration-150 shadow-sm h-10"
                       title={`Sync ${unsyncedReadings.length} unsynced readings to Google Calendar`}
                     >
-                      <SyncIcon synced={false} />
+                      <SyncIcon synced={false} className="w-4 h-4" />
                       <span>Sync All ({unsyncedReadings.length})</span>
                     </button>
                   )}
@@ -426,68 +433,64 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
               </div>
             </div>
 
-            {/* Desktop Table - Enhanced Modern Design */}
+            {/* Desktop Table - Compact Design */}
             <div className="hidden lg:block overflow-hidden">
-              <table className="w-full">
+              <div className="overflow-x-auto">
+                <table className="w-full">
                 <thead>
-                  <tr className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white">
-                    <th className="px-4 py-4 text-left text-sm font-bold uppercase tracking-wider">
-                      <div className="flex items-center gap-2">
+                    <tr className="bg-gradient-to-r from-[#16476A] via-[#132440] to-[#3B9797] text-white">
+                      <th className="px-2 py-2 text-left text-xs font-bold uppercase tracking-tight w-[100px]">
+                        <div className="flex items-center gap-1">
                         <CalendarIcon />
-                        {t('table.dateTime')}
+                          <span>Date</span>
                       </div>
                     </th>
-                    <th className="px-4 py-4 text-center text-sm font-bold uppercase tracking-wider">
-                      <div className="flex items-center justify-center gap-2">
-                        <HeartIcon className="w-4 h-4" />
-                        {t('table.bloodPressure')}
+                      <th className="px-2 py-2 text-center text-xs font-bold uppercase tracking-tight w-[100px]">
+                        <div className="flex items-center justify-center gap-1">
+                          <HeartIcon className="w-3 h-3" />
+                          <span>BP</span>
                       </div>
                     </th>
-                    <th className="px-4 py-4 text-center text-sm font-bold uppercase tracking-wider">
-                      <div className="flex items-center justify-center gap-2">
-                        <HeartIcon className="w-4 h-4 text-red-400" />
-                        {t('table.pulse')}
+                      <th className="px-2 py-2 text-center text-xs font-bold uppercase tracking-tight w-[70px]">
+                        <div className="flex items-center justify-center gap-1">
+                          <HeartIcon className="w-3 h-3" />
+                          <span>BPM</span>
                       </div>
                     </th>
-                    <th className="px-4 py-4 text-center text-sm font-bold uppercase tracking-wider">
-                      <div className="flex items-center justify-center gap-2">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <th className="px-2 py-2 text-center text-xs font-bold uppercase tracking-tight w-[90px]">
+                        <div className="flex items-center justify-center gap-1">
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        {t('table.assessment')}
+                          <span>Status</span>
                       </div>
                     </th>
-                    <th className="px-4 py-4 text-left text-sm font-bold uppercase tracking-wider">
-                      <div className="flex items-center gap-2">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <th className="px-2 py-2 text-left text-xs font-bold uppercase tracking-tight w-[80px]">
+                        <div className="flex items-center gap-1">
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
                         </svg>
-                        {t('table.notes')}
+                          <span>Note</span>
                       </div>
                     </th>
                     {isGoogleCalendarConnected && (
-                      <th className="px-4 py-4 text-center text-sm font-bold uppercase tracking-wider">
-                        <div className="flex items-center justify-center gap-2">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <th className="px-2 py-2 text-center text-xs font-bold uppercase tracking-tight w-[70px]">
+                          <div className="flex items-center justify-center gap-1">
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                           </svg>
-                          Sync
+                            <span>Sync</span>
                         </div>
                       </th>
                     )}
                     {(onEditReading || onDeleteReading) && (
-                      <th className="px-4 py-4 text-center text-sm font-bold uppercase tracking-wider">
-                        <div className="flex items-center justify-center gap-2">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                          </svg>
-                          {t('table.actions')}
-                        </div>
+                        <th className="px-2 py-2 text-center text-xs font-bold uppercase tracking-tight w-[80px]">
+                          <span>Actions</span>
                       </th>
                     )}
                   </tr>
                 </thead>
-                <tbody className="bg-white">
+                  <tbody className="bg-white">
                   {paginatedReadings.map((reading, index) => {
                     const assessment = getBloodPressureAssessment(reading.systolic, reading.diastolic);
                     const systolicStatus = getStatusIndicator(reading.systolic, 'systolic');
@@ -503,125 +506,78 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                     const isOverTarget = reading.systolic > targets.systolic || reading.diastolic > targets.diastolic;
                     const isSynced = reading.synced_to_calendar || false;
                     return (
-                      <tr key={reading.id} className={`group transition-all duration-300 hover:shadow-lg hover:scale-[1.01] ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'} hover:bg-gradient-to-r hover:from-white hover:to-slate-50/50 border-b border-slate-100/60`}>
-                        <td className="px-4 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center shadow-sm">
-                              <CalendarIcon />
-                            </div>
+                        <tr key={reading.id} className={`group transition-colors duration-150 ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'} hover:bg-slate-100/50 border-b border-slate-100/60`}>
+                          <td className="px-2 py-2 w-[100px]">
                             <div className="leading-tight">
-                              <div className="text-sm font-bold text-slate-900">{`${dd}-${mm}-${yyyy}`}</div>
-                              <div className="text-xs text-slate-600 font-medium flex items-center gap-1">
-                                <ClockIcon />
-                                {`${hh}:${min}`}
+                              <div className="text-xs font-semibold text-slate-900">{`${dd}-${mm}-${yyyy}`}</div>
+                              <div className="text-xs text-slate-500">{`${hh}:${min}`}</div>
+                          </div>
+                        </td>
+                          <td className="px-2 py-2 text-center w-[100px]">
+                            <div className="inline-block">
+                              <div className="bg-slate-50 rounded px-2 py-1 border border-slate-200">
+                                <div className="flex items-baseline justify-center gap-0.5">
+                                  <span className="text-base font-bold text-slate-900" style={{color: systolicStatus.textColor}}>{reading.systolic}</span>
+                                  <span className="text-slate-400 text-xs">/</span>
+                                  <span className="text-sm font-semibold text-slate-700" style={{color: diastolicStatus.textColor}}>{reading.diastolic}</span>
                               </div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-4 text-center">
-                          <div className="relative">
-                            <div className="bg-gradient-to-br from-white to-slate-50/50 rounded-2xl p-3 shadow-lg border border-slate-200/60 inline-block min-w-[100px] group-hover:shadow-xl transition-all duration-300">
-                              <div className="flex items-baseline justify-center gap-1 mb-1">
-                                <span className="text-2xl font-black text-slate-900" style={{color: systolicStatus.color}}>{reading.systolic}</span>
-                                <span className="text-slate-400 text-lg font-bold">/</span>
-                                <span className="text-xl font-bold text-slate-700" style={{color: diastolicStatus.color}}>{reading.diastolic}</span>
-                              </div>
-                              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">mmHg</div>
-                              <div className={`mt-2 px-2 py-1 rounded-full text-[10px] font-bold ${isOverTarget ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                                {reading.systolic > targets.systolic ? '+' : ''}{reading.systolic - targets.systolic}/{reading.diastolic > targets.diastolic ? '+' : ''}{reading.diastolic - targets.diastolic}
-                              </div>
-                            </div>
-                            {/* Trend indicators */}
-                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
-                              <SystolicIcon />
-                            </div>
+                          <td className="px-2 py-2 text-center w-[70px]">
+                            <div className="inline-block bg-slate-50 rounded px-2 py-1 border border-slate-200">
+                              <div className="text-sm font-bold text-slate-900">{reading.pulse}</div>
                           </div>
                         </td>
-                        <td className="px-4 py-4 text-center">
-                          <div className="relative">
-                            <div className="bg-gradient-to-br from-white to-slate-50/50 rounded-2xl p-3 shadow-lg border border-slate-200/60 inline-block min-w-[70px] group-hover:shadow-xl transition-all duration-300">
-                              <div className="text-lg font-black text-slate-900">{reading.pulse}</div>
-                              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">BPM</div>
-                            </div>
-                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-red-400 to-pink-500 rounded-full flex items-center justify-center">
-                              <HeartIcon className="w-2.5 h-2.5 text-white" />
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 text-center">
-                          <div className="flex flex-col items-center gap-2">
-                            <span className={`inline-flex items-center px-3 py-2 rounded-2xl text-xs font-bold text-white bg-gradient-to-r ${getStatusGradient(assessment.level)} shadow-lg transition-all duration-200 group-hover:shadow-xl group-hover:scale-105`} title={assessment.description}>
-                              {assessment.category}
+                          <td className="px-2 py-2 text-center w-[90px]">
+                            <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-semibold text-white`} style={{backgroundColor: assessment.color}} title={assessment.description}>
+                              {assessment.categoryShort || assessment.category}
                             </span>
-                            {assessment.level === 'crisis' && (
-                              <div className="flex items-center gap-1 text-xs text-red-700 font-bold animate-pulse bg-red-100 px-2 py-1 rounded-full">
-                                <span>⚠️</span>
-                                <span>URGENT</span>
-                              </div>
-                            )}
-                            {assessment.level === 'stage2' && (
-                              <div className="flex items-center gap-1 text-xs text-orange-700 font-bold bg-orange-100 px-2 py-1 rounded-full">
-                                <span>⚠️</span>
-                                <span>HIGH</span>
-                              </div>
-                            )}
-                          </div>
                         </td>
-                        <td className="px-4 py-4">
+                          <td className="px-2 py-2 w-[80px]">
                           {reading.notes ? (
-                            <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-xl p-3 border border-slate-200/60 group-hover:shadow-md transition-all duration-300">
-                              <p className="text-xs text-slate-700 leading-relaxed" title={reading.notes}>
-                                {reading.notes.length > 30 ? `${reading.notes.substring(0, 30)}...` : reading.notes}
-                              </p>
+                              <div className="text-xs text-slate-600 truncate max-w-[70px]" title={reading.notes}>
+                                {reading.notes}
                             </div>
                           ) : (
-                            <div className="bg-slate-100/50 rounded-xl p-3 border border-slate-200/40">
-                              <span className="text-slate-400 text-xs italic">No notes</span>
-                            </div>
+                              <span className="text-xs text-slate-400">—</span>
                           )}
                         </td>
                         {isGoogleCalendarConnected && (
-                          <td className="px-4 py-4 text-center">
-                            <div className="flex flex-col items-center gap-2">
-                              <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 shadow-md ${
-                                isSynced 
-                                  ? 'text-green-800 bg-gradient-to-r from-green-100 to-emerald-100 border border-green-200' 
-                                  : 'text-amber-800 bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200'
-                              }`}>
-                                <SyncIcon synced={isSynced} />
-                                <span className="hidden xl:inline">{isSynced ? 'Synced' : 'Not Synced'}</span>
-                              </div>
+                            <td className="px-2 py-2 text-center w-[70px]">
+                              <div className="flex flex-col items-center gap-1">
+                                <SyncIcon synced={isSynced} className={`w-4 h-4 ${isSynced ? 'text-[#3B9797]' : 'text-slate-400'}`} />
                               {!isSynced && onSyncReading && (
                                 <button
                                   onClick={() => onSyncReading(reading)}
-                                  className="px-3 py-1 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-xs font-bold rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200"
+                                    className="text-xs px-1 py-0.5 bg-[#16476A] text-white rounded hover:bg-[#132440] transition-colors"
                                   title="Sync to Google Calendar"
                                 >
-                                  Sync Now
+                                    Sync
                                 </button>
                               )}
                             </div>
                           </td>
                         )}
                         {(onEditReading || onDeleteReading) && (
-                          <td className="px-4 py-4 text-center">
-                            <div className="flex items-center justify-center gap-2">
+                            <td className="px-2 py-2 text-center w-[80px]">
+                              <div className="flex items-center justify-center gap-1">
                               {onEditReading && (
                                 <button
                                   onClick={() => onEditReading(reading)}
-                                  className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-200 flex items-center justify-center group"
-                                  title="Edit reading"
+                                    className="p-1.5 bg-[#16476A] text-white rounded hover:bg-[#132440] transition-colors"
+                                    title="Edit"
                                 >
-                                  <EditIcon />
+                                    <EditIcon />
                                 </button>
                               )}
                               {onDeleteReading && (
                                 <button
                                   onClick={() => onDeleteReading(reading)}
-                                  className="w-10 h-10 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-200 flex items-center justify-center group"
-                                  title="Delete reading"
+                                    className="p-1.5 bg-[#BF092F] text-white rounded hover:bg-[#A00726] transition-colors"
+                                    title="Delete"
                                 >
-                                  <DeleteIcon />
+                                    <DeleteIcon />
                                 </button>
                               )}
                             </div>
@@ -632,11 +588,12 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                   })}
                 </tbody>
               </table>
+              </div>
             </div>
 
             {/* Medium Table - Enhanced Tablet View */}
             <div className="hidden md:block lg:hidden">
-              <div className="space-y-4">
+              <div className="space-y-4 p-4">
                 {paginatedReadings.map((reading, index) => {
                   const assessment = getBloodPressureAssessment(reading.systolic, reading.diastolic);
                   const isOverTarget = reading.systolic > targets.systolic || reading.diastolic > targets.diastolic;
@@ -650,18 +607,18 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                   const min = String(d.getMinutes()).padStart(2,'0');
 
                   return (
-                    <div key={reading.id} className={`group bg-white rounded-2xl shadow-lg border border-slate-200/60 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}>
+                    <div key={reading.id} className={`group bg-white rounded-2xl shadow-lg border border-slate-200/60 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-[1.01] ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}>
                       {/* Enhanced Header */}
-                      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-4 py-4 text-white">
+                      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-4 py-3 text-white">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                              <CalendarIcon />
+                              <CalendarIcon className="w-4 h-4" />
                             </div>
                             <div>
                               <div className="text-sm font-bold">{`${dd}-${mm}-${yyyy}`}</div>
-                              <div className="text-xs text-indigo-100 flex items-center gap-1">
-                                <ClockIcon />
+                              <div className="text-xs text-[#d5f0f0] flex items-center gap-1">
+                              <ClockIcon className="w-3 h-3" />
                                 {`${hh}:${min}`}
                               </div>
                             </div>
@@ -673,10 +630,10 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                             {isGoogleCalendarConnected && (
                               <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${
                                 isSynced 
-                                  ? 'bg-green-500/20 text-green-100' 
-                                  : 'bg-amber-500/20 text-amber-100'
+                                  ? 'bg-[#3B9797]/20 text-[#5BC0C0]' 
+                                  : 'bg-[#16476A]/20 text-[#7DD3D3]'
                               }`}>
-                                <SyncIcon synced={isSynced} />
+                                <SyncIcon synced={isSynced} className="w-3 h-3" />
                               </div>
                             )}
                           </div>
@@ -688,14 +645,14 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                         <div className="grid grid-cols-2 gap-4 mb-4">
                           {/* Blood Pressure */}
                           <div className="text-center">
-                            <div className="bg-gradient-to-br from-white to-slate-50/50 rounded-2xl p-4 shadow-lg border border-slate-200/60 group-hover:shadow-xl transition-all duration-300">
+                            <div className="bg-gradient-to-br from-white to-slate-50/50 rounded-xl p-3 shadow-lg border border-slate-200/60 group-hover:shadow-xl transition-all duration-300">
                               <div className="flex items-baseline justify-center gap-1 mb-2">
-                                <span className="text-2xl font-black text-slate-900">{reading.systolic}</span>
+                                <span className="text-xl font-black text-slate-900">{reading.systolic}</span>
                                 <span className="text-slate-400 text-lg font-bold">/</span>
-                                <span className="text-xl font-bold text-slate-700">{reading.diastolic}</span>
+                                <span className="text-lg font-bold text-slate-700">{reading.diastolic}</span>
                               </div>
                               <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">mmHg</div>
-                              <div className={`mt-2 px-2 py-1 rounded-full text-[10px] font-bold ${isOverTarget ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                              <div className={`mt-1 px-2 py-1 rounded-full text-[10px] font-bold ${isOverTarget ? 'bg-[#BF092F]/10 text-[#BF092F]' : 'bg-[#3B9797]/10 text-[#3B9797]'}`}>
                                 {reading.systolic > targets.systolic ? '+' : ''}{reading.systolic - targets.systolic}/{reading.diastolic > targets.diastolic ? '+' : ''}{reading.diastolic - targets.diastolic}
                               </div>
                             </div>
@@ -703,8 +660,8 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                           
                           {/* Pulse */}
                           <div className="text-center">
-                            <div className="bg-gradient-to-br from-white to-slate-50/50 rounded-2xl p-4 shadow-lg border border-slate-200/60 group-hover:shadow-xl transition-all duration-300">
-                              <div className="text-2xl font-black text-slate-900 mb-2">{reading.pulse}</div>
+                            <div className="bg-gradient-to-br from-white to-slate-50/50 rounded-xl p-3 shadow-lg border border-slate-200/60 group-hover:shadow-xl transition-all duration-300">
+                              <div className="text-xl font-black text-slate-900 mb-2">{reading.pulse}</div>
                               <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">BPM</div>
                             </div>
                           </div>
@@ -713,7 +670,7 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                         {/* Notes */}
                         {reading.notes && (
                           <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-xl p-3 mb-4 border border-slate-200/60">
-                            <p className="text-sm text-slate-700">{reading.notes}</p>
+                            <p className="text-sm text-slate-700 leading-relaxed">{reading.notes}</p>
                           </div>
                         )}
                         
@@ -722,9 +679,9 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                           {!isSynced && onSyncReading && (
                             <button
                               onClick={() => onSyncReading(reading)}
-                              className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-xs font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 flex items-center gap-2"
+                              className="px-3 py-2 bg-gradient-to-r from-[#16476A] to-[#132440] text-white text-xs font-bold rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 flex items-center gap-2"
                             >
-                              <SyncIcon synced={false} />
+                              <SyncIcon synced={false} className="w-4 h-4" />
                               Sync Now
                             </button>
                           )}
@@ -733,19 +690,19 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                             {onEditReading && (
                               <button
                                 onClick={() => onEditReading(reading)}
-                                className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-200 flex items-center justify-center"
+                                className="w-9 h-9 bg-gradient-to-r from-[#16476A] to-[#132440] text-white rounded-lg shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-200 flex items-center justify-center"
                                 title="Edit reading"
                               >
-                                <EditIcon />
+                              <EditIcon className="w-4 h-4" />
                               </button>
                             )}
                             {onDeleteReading && (
                               <button
                                 onClick={() => onDeleteReading(reading)}
-                                className="w-10 h-10 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-200 flex items-center justify-center"
+                                className="w-9 h-9 bg-gradient-to-r from-[#BF092F] to-[#A00726] text-white rounded-lg shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-200 flex items-center justify-center"
                                 title="Delete reading"
                               >
-                                <DeleteIcon />
+                              <DeleteIcon className="w-4 h-4" />
                               </button>
                             )}
                           </div>
@@ -760,8 +717,8 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
             {/* Mobile-Optimized Cards */}
             <div className="md:hidden space-y-4 p-4">
               {/* Current Targets Chip (Mobile) */}
-              <div className="flex justify-end">
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold text-indigo-700 bg-indigo-100 border border-indigo-200">
+              <div className="flex justify-end mb-2">
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold text-[#16476A] bg-[#e8f1f5] border border-[#d1e3ed]">
                   {t('table.currentTargets', { sys: targets.systolic, dia: targets.diastolic })}
                 </span>
               </div>
@@ -778,75 +735,82 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                 const isOverTarget = reading.systolic > targets.systolic || reading.diastolic > targets.diastolic;
                 const isSynced = reading.synced_to_calendar || false;
                 return (
-                  <div key={reading.id} className={`relative rounded-2xl shadow-lg border border-slate-200/60 overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:-translate-y-2 ${getStatusBg(assessment.level)} animate-fadeInUp`}>
+                  <div key={reading.id} className={`relative rounded-2xl shadow-lg border border-slate-200/60 overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${getStatusBg(assessment.level)}`}>
                     {/* Status Indicator Bar */}
                     <div className={`h-2 bg-gradient-to-r ${getStatusGradient(assessment.level)} shadow-sm`}></div>
                     
-                    <div className="p-5">
+                    <div className="p-4">
                       {/* Header with Date and Actions */}
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex-1 leading-tight">
-                          <div className="text-base font-bold text-slate-900 whitespace-nowrap">{`${mdd}-${mmm}-${myyyy}`}</div>
-                          <div className="text-xs text-slate-600 font-semibold mt-0.5 whitespace-nowrap">{`${mhh}:${mmin}`}</div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className="w-6 h-6 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg flex items-center justify-center">
+                              <CalendarIcon className="w-3 h-3" />
+                            </div>
+                            <div className="text-base font-bold text-slate-900">{`${mdd}-${mmm}-${myyyy}`}</div>
                         </div>
-                        
+                          <div className="text-xs text-slate-600 font-semibold flex items-center gap-1">
+                            <ClockIcon className="w-3 h-3" />
+                            {`${mhh}:${mmin}`}
+                      </div>
+                      </div>
+                      
                         <div className="flex flex-col items-end gap-2">
                           <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getStatusGradient(assessment.level)} shadow-sm`} title={assessment.description}>
                             {assessment.category}
                           </span>
                           {assessment.level === 'crisis' && (
-                            <span className="text-xs text-red-700 font-semibold animate-pulse">⚠️ Emergency</span>
+                            <span className="text-xs text-[#BF092F] font-semibold animate-pulse">⚠️ Emergency</span>
                           )}
                           
                           {/* Sync Status */}
                           {isGoogleCalendarConnected && (
                             <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
                               isSynced 
-                                ? 'text-green-700 bg-green-100 border border-green-200' 
-                                : 'text-amber-700 bg-amber-100 border border-amber-200'
+                                ? 'text-[#3B9797] bg-[#d5f0f0] border border-[#3B9797]/30' 
+                                : 'text-[#16476A] bg-[#e8f1f5] border border-[#16476A]/30'
                             }`}>
-                              <SyncIcon synced={isSynced} />
+                              <SyncIcon synced={isSynced} className="w-3 h-3" />
                               <span>{isSynced ? 'Synced' : 'Not Synced'}</span>
-                            </div>
+                          </div>
                           )}
                           
                           {(onEditReading || onDeleteReading) && (
                             <div className="flex items-center gap-1">
-                              {onEditReading && (
-                                <button
-                                  onClick={() => onEditReading(reading)}
-                                  className="p-2 bg-indigo-100 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-lg transition-all duration-200 shadow-sm"
-                                  title="Edit reading"
-                                >
-                                  <EditIcon />
-                                </button>
-                              )}
-                              {onDeleteReading && (
-                                <button
-                                  onClick={() => onDeleteReading(reading)}
-                                  className="p-2 bg-red-100 text-red-700 hover:bg-red-600 hover:text-white rounded-lg transition-all duration-200 shadow-sm"
-                                  title="Delete reading"
-                                >
-                                  <DeleteIcon />
-                                </button>
-                              )}
-                            </div>
+                          {onEditReading && (
+                            <button
+                              onClick={() => onEditReading(reading)}
+                                  className="p-2 bg-[#e8f1f5] text-[#16476A] hover:bg-[#16476A] hover:text-white rounded-lg transition-all duration-200 shadow-sm"
+                              title="Edit reading"
+                            >
+                              <EditIcon className="w-4 h-4" />
+                            </button>
+                          )}
+                          {onDeleteReading && (
+                            <button
+                              onClick={() => onDeleteReading(reading)}
+                                  className="p-2 bg-[#BF092F]/10 text-[#BF092F] hover:bg-[#BF092F] hover:text-white rounded-lg transition-all duration-200 shadow-sm"
+                              title="Delete reading"
+                            >
+                              <DeleteIcon className="w-4 h-4" />
+                            </button>
                           )}
                         </div>
+                          )}
+                      </div>
                       </div>
                       
-                      {/* Main Blood Pressure Display */
-                      }
-                      <div className="bg-white/70 rounded-xl p-4 mb-4 backdrop-blur-sm">
+                      {/* Main Blood Pressure Display */}
+                      <div className="bg-white/70 rounded-xl p-4 mb-3 backdrop-blur-sm shadow-sm">
                         <div className="flex items-center justify-center">
                           <div className="text-center">
                             <div className="flex items-baseline justify-center gap-2 mb-2">
-                              <span className="text-4xl font-black text-slate-900">{reading.systolic}</span>
-                              <span className="text-slate-400 text-2xl font-bold">/</span>
-                              <span className="text-3xl font-bold text-slate-700">{reading.diastolic}</span>
+                              <span className="text-3xl font-black text-slate-900">{reading.systolic}</span>
+                              <span className="text-slate-400 text-xl font-bold">/</span>
+                              <span className="text-2xl font-bold text-slate-700">{reading.diastolic}</span>
                             </div>
                             <div className="text-sm font-semibold text-slate-500 uppercase tracking-wide">mmHg</div>
-                            <div className={`mt-1 text-xs font-bold ${isOverTarget ? 'text-red-600' : 'text-emerald-600'}`}>
+                            <div className={`mt-1 text-xs font-bold ${isOverTarget ? 'text-[#BF092F]' : 'text-[#3B9797]'}`}>
                               {reading.systolic > targets.systolic ? '+' : ''}{reading.systolic - targets.systolic}/{reading.diastolic > targets.diastolic ? '+' : ''}{reading.diastolic - targets.diastolic} <span className="opacity-70 text-[10px]">vs target</span>
                             </div>
                           </div>
@@ -854,10 +818,10 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                       </div>
 
                       {/* Pulse Display */}
-                      <div className="bg-white/70 rounded-xl p-3 mb-4 backdrop-blur-sm">
+                      <div className="bg-white/70 rounded-xl p-3 mb-3 backdrop-blur-sm shadow-sm">
                         <div className="text-center">
                           <div className="flex items-baseline justify-center gap-2 mb-1">
-                            <span className="text-2xl font-bold text-slate-900">{reading.pulse}</span>
+                            <span className="text-xl font-bold text-slate-900">{reading.pulse}</span>
                             <span className="text-sm font-semibold text-slate-500">BPM</span>
                           </div>
                           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Pulse Rate</div>
@@ -866,7 +830,7 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                       
                       {/* Notes Section */}
                       {reading.notes && (
-                        <div className="bg-white/70 rounded-xl p-3 backdrop-blur-sm">
+                        <div className="bg-white/70 rounded-xl p-3 mb-3 backdrop-blur-sm shadow-sm">
                           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Notes</div>
                           <p className="text-sm text-slate-700 leading-relaxed">{reading.notes}</p>
                         </div>
@@ -874,17 +838,17 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                       
                       {/* Sync Action Section */}
                       {isGoogleCalendarConnected && !isSynced && onSyncReading && (
-                        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-3 border border-indigo-200">
+                        <div className="bg-gradient-to-r from-[#e8f1f5] to-[#d5f0f0] rounded-xl p-3 border border-[#d1e3ed]">
                           <div className="flex items-center justify-between">
                             <div>
-                              <div className="text-xs font-semibold text-indigo-700 uppercase tracking-wide mb-1">Calendar Sync</div>
-                              <p className="text-sm text-indigo-600">Not synced to Google Calendar</p>
+                              <div className="text-xs font-semibold text-[#16476A] uppercase tracking-wide mb-1">Calendar Sync</div>
+                              <p className="text-sm text-[#3B9797]">Not synced to Google Calendar</p>
                             </div>
                             <button
                               onClick={() => onSyncReading(reading)}
-                              className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 transition-all duration-200 flex items-center gap-1"
+                              className="px-3 py-1.5 bg-[#16476A] text-white text-xs font-semibold rounded-lg hover:bg-[#132440] transition-all duration-200 flex items-center gap-1"
                             >
-                              <SyncIcon synced={false} />
+                              <SyncIcon synced={false} className="w-4 h-4" />
                               Sync Now
                             </button>
                           </div>
@@ -938,7 +902,7 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
                             onClick={() => handlePageChange(pageNum)}
                             className={`px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                               currentPage === pageNum
-                                ? 'bg-indigo-600 text-white shadow-md'
+                                ? 'bg-[#16476A] text-white shadow-md'
                                 : 'text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 hover:text-slate-700'
                             }`}
                           >
@@ -984,6 +948,13 @@ export const ReadingsTable: React.FC<ReadingsTableProps> = ({
             )}
           </div>
         )}
+
+        {/* PDF Download Modal */}
+        <PDFDownloadModal
+          isOpen={showPDFModal}
+          onClose={() => setShowPDFModal(false)}
+          readings={readings}
+        />
     </div>
   );
 };

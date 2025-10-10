@@ -20,10 +20,10 @@ const CircularGauge: React.FC<{
   
   // Color based on score
   const getColor = () => {
-    if (value >= 80) return { from: '#10b981', to: '#059669', text: 'text-emerald-600' }; // Excellent
-    if (value >= 60) return { from: '#3b82f6', to: '#2563eb', text: 'text-blue-600' }; // Good
-    if (value >= 40) return { from: '#f59e0b', to: '#d97706', text: 'text-amber-600' }; // Fair
-    return { from: '#ef4444', to: '#dc2626', text: 'text-red-600' }; // Needs Improvement
+    if (value >= 80) return { from: '#3B9797', to: '#2A7272', text: 'text-[#3B9797]' }; // Excellent
+    if (value >= 60) return { from: '#16476A', to: '#132440', text: 'text-[#16476A]' }; // Good
+    if (value >= 40) return { from: '#132440', to: '#0d1830', text: 'text-[#132440]' }; // Fair
+    return { from: '#BF092F', to: '#A00726', text: 'text-[#BF092F]' }; // Needs Improvement
   };
   
   const color = getColor();

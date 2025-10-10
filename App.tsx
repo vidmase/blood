@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 import { Header } from './components/Header';
 import { FileUpload } from './components/FileUpload';
 import { ReadingsTable } from './components/ReadingsTable';
@@ -15,7 +13,6 @@ import { DateFilter } from './components/DateFilter';
 import { ReportsDashboard } from './components/ReportsDashboard';
 import { HealthInsights } from './components/HealthInsights';
 import { BloodPressureTrends } from './components/BloodPressureTrends';
-import { ExportModal } from './components/ExportModal';
 import { UnifiedSettingsModal } from './components/UnifiedSettingsModal';
 import { CameraCapture } from './components/CameraCapture';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -35,13 +32,13 @@ const ErrorDisplay: React.FC<{ message: string | null, onClose: () => void }> = 
     const { t } = useLocalization();
     if (!message) return null;
     return (
-        <div className="fixed bottom-4 right-4 max-w-sm w-full bg-[var(--c-danger)] border-l-4 border-red-700 text-white p-4 rounded-lg shadow-lg z-50 animate-fadeInUp" role="alert">
+        <div className="fixed bottom-4 right-4 max-w-sm w-full bg-[#BF092F] border-l-4 border-[#8A051F] text-white p-4 rounded-lg shadow-lg z-50 animate-fadeInUp" role="alert">
             <div className="flex justify-between items-start">
                 <div>
                     <p className="font-bold">{t('error.title')}</p>
                     <p className="text-sm whitespace-pre-wrap">{message}</p>
                 </div>
-                <button onClick={onClose} className="ml-4 p-1 text-white hover:bg-red-800 rounded-full focus:outline-none" aria-label={t('error.closeAriaLabel')}>&times;</button>
+                <button onClick={onClose} className="ml-4 p-1 text-white hover:bg-[#A00726] rounded-full focus:outline-none" aria-label={t('error.closeAriaLabel')}>&times;</button>
             </div>
         </div>
     );
@@ -59,7 +56,7 @@ const SuccessDisplay: React.FC<{
     const { t } = useLocalization();
     if (!message) return null;
     return (
-        <div className="fixed bottom-4 right-4 max-w-sm w-full bg-green-600 border-l-4 border-green-700 text-white p-4 rounded-lg shadow-lg z-50 animate-fadeInUp" role="alert">
+        <div className="fixed bottom-4 right-4 max-w-sm w-full bg-[#3B9797] border-l-4 border-[#2A7272] text-white p-4 rounded-lg shadow-lg z-50 animate-fadeInUp" role="alert">
             <div className="flex justify-between items-start">
                 <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
@@ -73,10 +70,10 @@ const SuccessDisplay: React.FC<{
                         <button
                             onClick={actionButton.onClick}
                             disabled={actionButton.loading}
-                            className="mt-3 px-3 py-1.5 bg-white text-green-600 text-sm font-semibold rounded-lg hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-300 disabled:opacity-50 transition-all flex items-center gap-2"
+                            className="mt-3 px-3 py-1.5 bg-white text-[#3B9797] text-sm font-semibold rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#5BC0C0] disabled:opacity-50 transition-all flex items-center gap-2"
                         >
                             {actionButton.loading && (
-                                <div className="animate-spin rounded-full h-3 w-3 border border-green-600 border-t-transparent"></div>
+                                <div className="animate-spin rounded-full h-3 w-3 border border-[#3B9797] border-t-transparent"></div>
                             )}
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -85,7 +82,7 @@ const SuccessDisplay: React.FC<{
                         </button>
                     )}
                 </div>
-                <button onClick={onClose} className="ml-4 p-1 text-white hover:bg-green-700 rounded-full focus:outline-none" aria-label="Close">&times;</button>
+                <button onClick={onClose} className="ml-4 p-1 text-white hover:bg-[#2A7272] rounded-full focus:outline-none" aria-label="Close">&times;</button>
             </div>
         </div>
     );
@@ -116,7 +113,6 @@ const MainApp: React.FC = () => {
   const analysisCanceledRef = useRef(false);
   const insightsRunIdRef = useRef(0);
   const insightsCanceledRef = useRef(false);
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
@@ -212,23 +208,24 @@ const MainApp: React.FC = () => {
     handleOAuthCallback();
   }, []);
 
+  // Load readings from database
+  const loadReadings = async () => {
+    if (!user) return;
+    
+    try {
+      setIsLoading(true);
+      const dbReadings = await bloodPressureService.getReadings();
+      setReadings(dbReadings);
+    } catch (err) {
+      console.error('Error loading readings:', err);
+      setError('Failed to load readings from database');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Load readings from database when user is authenticated
   useEffect(() => {
-    const loadReadings = async () => {
-      if (!user) return;
-      
-      try {
-        setIsLoading(true);
-        const dbReadings = await bloodPressureService.getReadings();
-        setReadings(dbReadings);
-      } catch (err) {
-        console.error('Error loading readings:', err);
-        setError('Failed to load readings from database');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     loadReadings();
   }, [user]);
 
@@ -485,106 +482,6 @@ const MainApp: React.FC = () => {
   }, []);
 
 
-  const handleExportPDF = (options: { includeAnalysis: boolean; includeInsights: boolean }) => {
-    const { includeAnalysis, includeInsights } = options;
-    if (filteredReadings.length === 0) return;
-
-    const doc = new jsPDF();
-    const pageMargin = 14;
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const textWidth = pageWidth - pageMargin * 2;
-    let y = 22;
-
-    const checkPageBreak = (neededHeight: number) => {
-      if (y + neededHeight > 280) {
-        doc.addPage();
-        y = 22;
-      }
-    };
-
-    const addSectionTitle = (title: string) => {
-      checkPageBreak(12);
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(40);
-      doc.text(title, pageMargin, y);
-      y += 8;
-    };
-
-    const addText = (text: string | string[], options: { size?: number, style?: string, color?: number, indent?: number } = {}) => {
-      const { size = 10, style = 'normal', color = 100, indent = 0 } = options;
-      doc.setFontSize(size);
-      doc.setFont('helvetica', style);
-      doc.setTextColor(color);
-      const lines = doc.splitTextToSize(String(text), textWidth - indent);
-      checkPageBreak(lines.length * 5);
-      doc.text(lines, pageMargin + indent, y);
-      y += lines.length * 5;
-    };
-    
-    doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(40);
-    doc.text(t('export.mainTitle'), pageMargin, y);
-    y += 8;
-
-    if (startDate || endDate) {
-      const formattedStartDate = startDate ? new Date(`${startDate}T00:00:00`).toLocaleDateString() : t('export.periodStart');
-      const formattedEndDate = endDate ? new Date(`${endDate}T23:59:59`).toLocaleDateString() : t('export.periodEnd');
-      addText(`${t('export.period')}: ${formattedStartDate} ${t('export.periodTo')} ${formattedEndDate}`, { size: 11, color: 100 });
-      y += 5;
-    }
-
-    if (includeAnalysis && analysis) {
-      addSectionTitle(t('export.analysisTitle'));
-      addText(t('export.overallTrend'), { style: 'bold' });
-      addText(`${analysis.overallTrend.trend} - ${analysis.overallTrend.summary}`, { indent: 2 });
-      y += 3;
-      addText(t('export.keyMetrics'), { style: 'bold' });
-      addText([
-          `${t('export.systolic')}: ${Math.round(analysis.keyMetrics.avgSystolic)}`,
-          `${t('export.diastolic')}: ${Math.round(analysis.keyMetrics.avgDiastolic)}`,
-          `${t('export.pulse')}: ${Math.round(analysis.keyMetrics.avgPulse)}`,
-      ], { indent: 2 });
-      y += 3;
-      addText(t('export.observations'), { style: 'bold' });
-      analysis.observations.forEach(obs => addText(`- ${obs.message}`, { indent: 2 }));
-      y += 3;
-      addText(analysis.encouragement, { size: 9, style: 'italic' });
-      y += 6;
-    }
-    
-    if (includeInsights && healthInsights && healthInsights.length > 0) {
-      addSectionTitle(t('export.insightsTitle'));
-      healthInsights.forEach(insight => {
-        addText(insight.category, { style: 'bold' });
-        addText(`- ${insight.tip}`, { indent: 2 });
-      });
-      y += 6;
-    }
-    
-    addSectionTitle(t('export.readingsTitle'));
-    
-    const tableData = filteredReadings.map(r => ([
-        new Date(r.date).toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-        r.systolic,
-        r.diastolic,
-        r.pulse
-    ]));
-
-    (doc as any).autoTable({
-        head: [[t('table.date'), t('table.systolic'), t('table.diastolic'), t('table.pulse')]],
-        body: tableData,
-        startY: y,
-        theme: 'grid',
-        headStyles: { fillColor: [99, 102, 241], textColor: 255 },
-        styles: { font: 'helvetica', fontSize: 10, cellPadding: 2.5 },
-        alternateRowStyles: { fillColor: [248, 250, 252] },
-    });
-
-    doc.save('blood_pressure_report.pdf');
-    setIsExportModalOpen(false);
-  };
   
   const handleSaveSettings = (newProfile: UserProfile, newSettings: AppSettings) => {
     setProfile(newProfile);
@@ -892,9 +789,9 @@ const MainApp: React.FC = () => {
             {/* Sidebar for Desktop */}
             <div className="xl:col-span-1 2xl:col-span-1 flex flex-col gap-4 sm:gap-5 md:gap-6 xl:gap-8 stagger-children">
               {/* Quick Actions Panel */}
-              <div className="hidden xl:block bg-[var(--c-surface)] p-6 2xl:p-8 rounded-2xl shadow-lg shadow-indigo-100/50 animate-fadeInUp border border-slate-100/50">
+              <div className="hidden xl:block bg-[var(--c-surface)] p-6 2xl:p-8 rounded-2xl shadow-lg shadow-[#16476A]/10 animate-fadeInUp border border-[#d1e3ed]/50">
                 <h3 className="text-lg 2xl:text-xl font-bold text-[var(--c-text-primary)] mb-6 flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#16476A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                   {t('buttons.quickActions')}
@@ -902,7 +799,7 @@ const MainApp: React.FC = () => {
                 <div className="space-y-4">
                   <button
                     onClick={() => setIsAddModalOpen(true)}
-                    className="w-full flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                    className="w-full flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-[#16476A] to-[#132440] text-white hover:from-[#1a5680] hover:to-[#16476A] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -912,7 +809,7 @@ const MainApp: React.FC = () => {
                   <button
                     onClick={openAnalysisModal}
                     disabled={filteredReadings.length < 2 || isAnalyzing}
-                    className="w-full flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                    className="w-full flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-[#3B9797] to-[#5BC0C0] text-white hover:from-[#2A7272] hover:to-[#3B9797] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${isAnalyzing ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -922,7 +819,7 @@ const MainApp: React.FC = () => {
                   <button
                     onClick={openInsightsModal}
                     disabled={isFetchingInsights}
-                    className="w-full flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-purple-500 to-pink-600 text-white hover:from-purple-600 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                    className="w-full flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-[#132440] to-[#16476A] text-white hover:from-[#0d1830] hover:to-[#132440] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${isFetchingInsights ? 'animate-pulse' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M12 2a7 7 0 00-7 7c0 2.577 1.5 4.5 3 6 1 1 2 2 2 3v2h4v-2c0-1 1-2 2-3 1.5-1.5 3-3.423 3-6a7 7 0 00-7-7z" strokeLinecap="round" strokeLinejoin="round"/>
@@ -931,7 +828,7 @@ const MainApp: React.FC = () => {
                   </button>
                   <ESHClassificationButton
                     variant="primary"
-                    className="w-full flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 text-white hover:from-teal-600 hover:to-cyan-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                    className="w-full flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-[#3B9797] to-[#16476A] text-white hover:from-[#2A7272] hover:to-[#132440] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -942,21 +839,21 @@ const MainApp: React.FC = () => {
               </div>
               
               {/* Statistics Panel */}
-              <div className="hidden xl:block bg-[var(--c-surface)] p-6 2xl:p-8 rounded-2xl shadow-lg shadow-indigo-100/50 animate-fadeInUp border border-slate-100/50">
+              <div className="hidden xl:block bg-[var(--c-surface)] p-6 2xl:p-8 rounded-2xl shadow-lg shadow-[#16476A]/10 animate-fadeInUp border border-[#d1e3ed]/50">
                 <h3 className="text-lg 2xl:text-xl font-bold text-[var(--c-text-primary)] mb-6 flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#3B9797]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                   {t('buttons.statistics')}
                 </h3>
                 <div className="space-y-4">
-                  <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
-                    <div className="text-2xl font-bold text-blue-700">{readings.length}</div>
-                    <div className="text-sm text-blue-600 font-medium">{t('buttons.totalReadings')}</div>
+                  <div className="p-4 bg-gradient-to-br from-[#e8f7f7] to-[#d5f0f0] rounded-xl border border-[#3B9797]/30">
+                    <div className="text-2xl font-bold text-[#16476A]">{readings.length}</div>
+                    <div className="text-sm text-[#3B9797] font-medium">{t('buttons.totalReadings')}</div>
                   </div>
-                  <div className="p-4 bg-gradient-to-br from-emerald-50 to-green-50 rounded-xl border border-emerald-100">
-                    <div className="text-2xl font-bold text-emerald-700">{filteredReadings.length}</div>
-                    <div className="text-sm text-emerald-600 font-medium">{t('buttons.thisPeriod')}</div>
+                  <div className="p-4 bg-gradient-to-br from-[#d5e8f0] to-[#c0dce8] rounded-xl border border-[#16476A]/30">
+                    <div className="text-2xl font-bold text-[#132440]">{filteredReadings.length}</div>
+                    <div className="text-sm text-[#16476A] font-medium">{t('buttons.thisPeriod')}</div>
                   </div>
                 </div>
               </div>
@@ -964,11 +861,11 @@ const MainApp: React.FC = () => {
 
             <div className="xl:col-span-3 2xl:col-span-4 flex flex-col gap-4 sm:gap-5 md:gap-6 xl:gap-8 stagger-children" style={{'--stagger-index': 2} as React.CSSProperties}>
             
-            <div className="bg-[var(--c-surface)] p-4 sm:p-5 md:p-6 xl:p-8 2xl:p-10 rounded-2xl shadow-lg shadow-indigo-100/50 animate-fadeInUp border border-slate-100/50">
+            <div className="bg-[var(--c-surface)] p-4 sm:p-5 md:p-6 xl:p-8 2xl:p-10 rounded-2xl shadow-lg shadow-[#16476A]/10 animate-fadeInUp border border-[#d1e3ed]/50">
               <div className="flex flex-col gap-3 sm:gap-4 xl:gap-6 mb-4 sm:mb-5 md:mb-6">
                 <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3 sm:gap-4">
                   <h2 className="text-xl sm:text-2xl xl:text-3xl 2xl:text-4xl font-bold text-[var(--c-text-primary)] flex items-center gap-2 sm:gap-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6 xl:h-8 xl:w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6 xl:h-8 xl:w-8 text-[#16476A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                     {t('readings.title')}
@@ -979,7 +876,7 @@ const MainApp: React.FC = () => {
                     <button
                       onClick={openAnalysisModal}
                       disabled={filteredReadings.length < 2 || isAnalyzing}
-                      className="flex-1 min-w-[140px] flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white active:scale-95 transition-all duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                      className="flex-1 min-w-[140px] flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-gradient-to-r from-[#16476A] to-[#132440] text-white active:scale-95 transition-all duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 ${isAnalyzing ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -989,7 +886,7 @@ const MainApp: React.FC = () => {
                     <button
                       onClick={openInsightsModal}
                       disabled={isFetchingInsights}
-                      className="flex-1 min-w-[140px] flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-gradient-to-r from-purple-500 to-pink-600 text-white active:scale-95 transition-all duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                      className="flex-1 min-w-[140px] flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-gradient-to-r from-[#3B9797] to-[#5BC0C0] text-white active:scale-95 transition-all duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 ${isFetchingInsights ? 'animate-pulse' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M12 2a7 7 0 00-7 7c0 2.577 1.5 4.5 3 6 1 1 2 2 2 3v2h4v-2c0-1 1-2 2-3 1.5-1.5 3-3.423 3-6a7 7 0 00-7-7z" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1034,19 +931,6 @@ const MainApp: React.FC = () => {
                     </button>
                   </div>
                   
-                  {/* Enhanced Export and Filter Controls */}
-                  <div className="flex items-center gap-2 sm:gap-3 xl:gap-4">
-                    <button
-                      onClick={() => setIsExportModalOpen(true)}
-                      disabled={filteredReadings.length === 0}
-                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 xl:gap-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold py-2.5 sm:py-2.5 xl:py-3 px-4 xl:px-6 rounded-lg xl:rounded-xl active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-200 shadow-md sm:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-sm xl:text-base"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 xl:h-5 xl:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      <span>{t('buttons.exportPDF')}</span>
-                    </button>
-                  </div>
                 </div>
               </div>
               
@@ -1119,13 +1003,6 @@ const MainApp: React.FC = () => {
           setSuccessAction(null);
         }}
         actionButton={successAction}
-      />
-      <ExportModal
-        isOpen={isExportModalOpen}
-        onClose={() => setIsExportModalOpen(false)}
-        onConfirm={handleExportPDF}
-        analysisAvailable={analysis !== null}
-        insightsAvailable={healthInsights !== null && healthInsights.length > 0}
       />
       {/* AI Analysis Modal */}
       {isAnalysisModalOpen && (
@@ -1200,6 +1077,7 @@ const MainApp: React.FC = () => {
         onClose={() => setIsSettingsModalOpen(false)}
         onSave={handleSaveSettings}
         onClearData={handleClearData}
+        onRefreshReadings={loadReadings}
         currentProfile={profile}
         currentSettings={settings}
         readings={readings}

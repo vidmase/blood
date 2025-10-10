@@ -35,7 +35,7 @@ export const AuthPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#e8f1f5] via-white to-[#d5f0f0] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {renderForm()}
       </div>

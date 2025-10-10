@@ -8,15 +8,7 @@ import type { BloodPressureReading } from '../types';
 
 /**
  * Classifies a blood pressure reading according to ESH standards
- * 
- * The classification follows a priority system:
- * 1. Check for hypertensive crisis first
- * 2. Check for hypotension
- * 3. Check for isolated systolic hypertension
- * 4. Check other categories based on both systolic and diastolic values
- * 
- * When systolic and diastolic fall into different categories,
- * the higher risk category is selected.
+ * Based on the reference table provided - follows exact ranges
  */
 export function classifyBloodPressure(
   systolic: number,
@@ -38,32 +30,32 @@ export function classifyBloodPressure(
     return ESH_BP_CATEGORIES.find(cat => cat.categoryShort === 'ISH')!;
   }
 
-  // Priority 4: Grade 3 Hypertension
-  if (systolic >= 180 || diastolic >= 110) {
+  // Priority 4: Grade 3 HTN (180-219 OR 110-119)
+  if ((systolic >= 180 && systolic <= 219) || (diastolic >= 110 && diastolic <= 119)) {
     return ESH_BP_CATEGORIES.find(cat => cat.categoryShort === 'Grade 3 HTN')!;
   }
 
-  // Priority 5: Grade 2 Hypertension
-  if (systolic >= 160 || diastolic >= 100) {
+  // Priority 5: Grade 2 HTN (160-179 OR 100-109)
+  if ((systolic >= 160 && systolic <= 179) || (diastolic >= 100 && diastolic <= 109)) {
     return ESH_BP_CATEGORIES.find(cat => cat.categoryShort === 'Grade 2 HTN')!;
   }
 
-  // Priority 6: Grade 1 Hypertension
-  if (systolic >= 140 || diastolic >= 90) {
+  // Priority 6: Grade 1 HTN (140-159 OR 90-99)
+  if ((systolic >= 140 && systolic <= 159) || (diastolic >= 90 && diastolic <= 99)) {
     return ESH_BP_CATEGORIES.find(cat => cat.categoryShort === 'Grade 1 HTN')!;
   }
 
-  // Priority 7: High Normal
-  if (systolic >= 130 || diastolic >= 85) {
+  // Priority 7: High Normal (130-139 OR 85-89)
+  if ((systolic >= 130 && systolic <= 139) || (diastolic >= 85 && diastolic <= 89)) {
     return ESH_BP_CATEGORIES.find(cat => cat.categoryShort === 'High-Normal')!;
   }
 
-  // Priority 8: Normal
-  if (systolic >= 120 || diastolic >= 80) {
+  // Priority 8: Normal (120-129 OR 80-84)
+  if ((systolic >= 120 && systolic <= 129) || (diastolic >= 80 && diastolic <= 84)) {
     return ESH_BP_CATEGORIES.find(cat => cat.categoryShort === 'Normal')!;
   }
 
-  // Default: Optimal
+  // Default: Optimal (<120 AND <80)
   return ESH_BP_CATEGORIES.find(cat => cat.categoryShort === 'Optimal')!;
 }
 

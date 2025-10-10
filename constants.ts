@@ -29,8 +29,8 @@ export const ESH_BP_CATEGORIES: BPCategory[] = [
     systolicMax: 119,
     diastolicMin: 0,
     diastolicMax: 79,
-    color: '#10b981', // green-500
-    description: 'Blood pressure is in the optimal range',
+    color: '#3B9797', // teal - optimal
+    description: 'Optimal cardiovascular health',
     riskLevel: 'low',
     recommendations: [
       'Maintain a healthy lifestyle',
@@ -46,8 +46,8 @@ export const ESH_BP_CATEGORIES: BPCategory[] = [
     systolicMax: 129,
     diastolicMin: 80,
     diastolicMax: 84,
-    color: '#84cc16', // lime-500
-    description: 'Blood pressure is normal',
+    color: '#5BC0C0', // light teal - normal
+    description: 'Normal blood pressure',
     riskLevel: 'low',
     recommendations: [
       'Maintain healthy lifestyle habits',
@@ -63,8 +63,8 @@ export const ESH_BP_CATEGORIES: BPCategory[] = [
     systolicMax: 139,
     diastolicMin: 85,
     diastolicMax: 89,
-    color: '#fbbf24', // amber-400
-    description: 'Blood pressure is high-normal (prehypertension)',
+    color: '#16476A', // blue - elevated
+    description: 'Prehypertension - lifestyle changes recommended',
     riskLevel: 'moderate',
     recommendations: [
       'Adopt lifestyle modifications',
@@ -76,14 +76,14 @@ export const ESH_BP_CATEGORIES: BPCategory[] = [
     ]
   },
   {
-    category: 'Grade 1 Hypertension (Mild)',
+    category: 'Grade 1 HTN',
     categoryShort: 'Grade 1 HTN',
     systolicMin: 140,
     systolicMax: 159,
     diastolicMin: 90,
     diastolicMax: 99,
-    color: '#fb923c', // orange-400
-    description: 'Mild hypertension - medical consultation recommended',
+    color: '#132440', // navy - stage 1
+    description: 'Mild hypertension - medical consultation advised',
     riskLevel: 'high',
     recommendations: [
       'Consult healthcare provider',
@@ -97,14 +97,14 @@ export const ESH_BP_CATEGORIES: BPCategory[] = [
     ]
   },
   {
-    category: 'Grade 2 Hypertension (Moderate)',
+    category: 'Grade 2 HTN',
     categoryShort: 'Grade 2 HTN',
     systolicMin: 160,
     systolicMax: 179,
     diastolicMin: 100,
     diastolicMax: 109,
-    color: '#f87171', // red-400
-    description: 'Moderate hypertension - medical treatment recommended',
+    color: '#BF092F', // crimson - stage 2
+    description: 'Moderate hypertension - treatment typically required',
     riskLevel: 'very-high',
     recommendations: [
       'Seek medical consultation promptly',
@@ -117,13 +117,13 @@ export const ESH_BP_CATEGORIES: BPCategory[] = [
     ]
   },
   {
-    category: 'Grade 3 Hypertension (Severe)',
+    category: 'Grade 3 HTN',
     categoryShort: 'Grade 3 HTN',
     systolicMin: 180,
     systolicMax: 219,
     diastolicMin: 110,
     diastolicMax: 119,
-    color: '#dc2626', // red-600
+    color: '#A00726', // dark crimson - grade 3
     description: 'Severe hypertension - urgent medical attention required',
     riskLevel: 'critical',
     recommendations: [
@@ -143,8 +143,8 @@ export const ESH_BP_CATEGORIES: BPCategory[] = [
     systolicMax: 300,
     diastolicMin: 120,
     diastolicMax: 200,
-    color: '#991b1b', // red-800
-    description: 'Hypertensive crisis - emergency medical care required',
+    color: '#8A051F', // darkest crimson - crisis
+    description: 'Medical emergency - call emergency services immediately',
     riskLevel: 'critical',
     recommendations: [
       'SEEK EMERGENCY MEDICAL CARE IMMEDIATELY',
@@ -155,14 +155,14 @@ export const ESH_BP_CATEGORIES: BPCategory[] = [
     ]
   },
   {
-    category: 'Isolated Systolic Hypertension',
+    category: 'Isolated Systolic HTN',
     categoryShort: 'ISH',
     systolicMin: 140,
     systolicMax: 300,
     diastolicMin: 0,
     diastolicMax: 89,
-    color: '#f97316', // orange-500
-    description: 'Isolated systolic hypertension - common in older adults',
+    color: '#132440', // navy - ISH
+    description: 'High systolic with normal diastolic - common in older adults',
     riskLevel: 'high',
     recommendations: [
       'Common in older adults (>60 years)',
@@ -174,15 +174,15 @@ export const ESH_BP_CATEGORIES: BPCategory[] = [
     ]
   },
   {
-    category: 'Hypotension (Low)',
+    category: 'Hypotension',
     categoryShort: 'Low',
     systolicMin: 0,
     systolicMax: 89,
     diastolicMin: 0,
     diastolicMax: 59,
-    color: '#60a5fa', // blue-400
-    description: 'Low blood pressure - may require evaluation',
-    riskLevel: 'moderate',
+    color: '#7DD3D3', // very light teal - low
+    description: 'Low blood pressure - evaluation if symptomatic',
+    riskLevel: 'low',
     recommendations: [
       'Consult healthcare provider if symptomatic',
       'Stay well hydrated',
@@ -212,13 +212,13 @@ export const ESH_BP_RANGES = {
  * Color coding for blood pressure visualization
  */
 export const ESH_BP_COLORS = {
-  OPTIMAL: '#10b981',
-  NORMAL: '#84cc16',
-  HIGH_NORMAL: '#fbbf24',
-  GRADE_1_HTN: '#fb923c',
-  GRADE_2_HTN: '#f87171',
-  GRADE_3_HTN: '#dc2626',
-  HYPERTENSIVE_CRISIS: '#991b1b',
-  ISOLATED_SYSTOLIC_HTN: '#f97316',
-  HYPOTENSION: '#60a5fa'
+  OPTIMAL: '#3B9797',
+  NORMAL: '#5BC0C0',
+  HIGH_NORMAL: '#16476A',
+  GRADE_1_HTN: '#132440',
+  GRADE_2_HTN: '#BF092F',
+  GRADE_3_HTN: '#A00726',
+  HYPERTENSIVE_CRISIS: '#8A051F',
+  ISOLATED_SYSTOLIC_HTN: '#132440',
+  HYPOTENSION: '#7DD3D3'
 } as const;

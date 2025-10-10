@@ -169,32 +169,42 @@ export const CalendarSyncSettings: React.FC<CalendarSyncSettingsProps> = ({
       
       onSyncUpdate(updatedConfig);
       setSyncStatus('idle');
-      onSuccess(`Sync tracking rebuilt! Found ${updatedConfig.syncedReadingIds?.length || 0} existing calendar events.`);
+      const syncedCount = readings.filter(reading => reading.synced_to_calendar).length;
+      onSuccess(`Sync tracking rebuilt! Found ${syncedCount} existing calendar events.`);
     } catch (err: any) {
       onError(err.message || 'Failed to rebuild sync tracking');
       setSyncStatus('idle');
     }
   };
 
-  const handleMarkAllAsSynced = (e?: React.MouseEvent) => {
+  const handleMarkAllAsSynced = async (e?: React.MouseEvent) => {
     e?.stopPropagation();
     if (!currentSync) {
       onError('Please connect to Google Calendar first');
       return;
     }
 
-    // Mark all readings as synced by adding all reading IDs to syncedReadingIds
-    const allReadingIds = readings.map(reading => String(reading.id));
-    
-    const updatedConfig: GoogleCalendarSync = {
-      ...currentSync,
-      syncedReadingIds: allReadingIds,
-      lastSyncedAt: new Date().toISOString(),
-    };
-    
-    onSyncUpdate(updatedConfig);
-    onSuccess(`Marked all ${readings.length} readings as synced!`);
+    try {
+      // Mark all readings as synced in the database
+      const { bloodPressureService } = await import('../services/bloodPressureService');
+      const allReadingIds = readings.map(reading => String(reading.id));
+      await bloodPressureService.markMultipleAsSynced(allReadingIds);
+      
+      const updatedConfig: GoogleCalendarSync = {
+        ...currentSync,
+        lastSyncedAt: new Date().toISOString(),
+      };
+      
+      onSyncUpdate(updatedConfig);
+      onSuccess(`Marked all ${readings.length} readings as synced!`);
+    } catch (err: any) {
+      onError(err.message || 'Failed to mark readings as synced');
+    }
   };
+
+  // Calculate unsynced readings count for button state
+  const unsyncedReadings = readings.filter(reading => !reading.synced_to_calendar);
+  const hasUnsyncedReadings = unsyncedReadings.length > 0;
 
   return (
     <div className="space-y-6">
@@ -351,7 +361,7 @@ export const CalendarSyncSettings: React.FC<CalendarSyncSettingsProps> = ({
             <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
               <div className="text-sm font-medium text-slate-700 dark:text-slate-300">Synced</div>
               <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {currentSync.syncedReadingIds?.length || 0}
+                {readings.filter(reading => reading.synced_to_calendar).length}
               </div>
             </div>
           </div>
@@ -378,13 +388,17 @@ export const CalendarSyncSettings: React.FC<CalendarSyncSettingsProps> = ({
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={handleSyncNow}
-                disabled={syncStatus === 'syncing'}
+                disabled={syncStatus === 'syncing' || !hasUnsyncedReadings}
                 className="flex-1 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 transition-all shadow-lg flex items-center justify-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
-                {syncStatus === 'syncing' ? 'Syncing...' : 'Sync Now'}
+                {syncStatus === 'syncing' 
+                  ? 'Syncing...' 
+                  : !hasUnsyncedReadings 
+                    ? 'All Synced' 
+                    : 'Sync Now'}
               </button>
               <button
                 onClick={handleDisconnect}

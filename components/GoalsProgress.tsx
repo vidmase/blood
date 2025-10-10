@@ -37,7 +37,7 @@ const ProgressBar: React.FC<{
       <div className="flex items-center justify-between">
         <span className="text-sm font-bold text-slate-700">{label}</span>
         <div className="flex items-center gap-2">
-          <span className={`text-lg font-black ${isOnTarget ? 'text-emerald-600' : 'text-slate-900'}`}>
+          <span className={`text-lg font-black ${isOnTarget ? 'text-[#3B9797]' : 'text-slate-900'}`}>
             {current}
           </span>
           <span className="text-xs text-slate-500">/ {target} {unit}</span>
@@ -56,7 +56,7 @@ const ProgressBar: React.FC<{
       <div className="flex items-center justify-between">
         <span className="text-xs text-slate-500">{progress}% complete</span>
         {isOnTarget && (
-          <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
+          <span className="text-xs font-bold text-[#3B9797] flex items-center gap-1">
             <span>✓</span> Target reached!
           </span>
         )}
@@ -95,7 +95,7 @@ const AchievementBadge: React.FC<{
         </p>
       </div>
       {unlocked && (
-        <div className="absolute -top-2 -right-2 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg">
+          <div className="absolute -top-2 -right-2 w-6 h-6 bg-[#3B9797] rounded-full flex items-center justify-center shadow-lg">
           <span className="text-white text-xs">✓</span>
         </div>
       )}
